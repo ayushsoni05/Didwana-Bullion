@@ -2,8 +2,8 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/obsidian_bg" />
     <item
-        android:width="120dp"
-        android:height="120dp"
-        android:drawable="@drawable/ic_didwana_crest"
+        android:width="160dp"
+        android:height="160dp"
+        android:drawable="@drawable/splash_logo"
         android:gravity="center" />
 </layer-list>

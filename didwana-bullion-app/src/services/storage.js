@@ -7,10 +7,11 @@ const KEYS = {
   LEGAL_CONSENT: 'db_legal_consent',
   COOKIE_PREFS: 'db_cookie_prefs',
   FUNC_PREFS: 'db_functional_prefs',
+  LAST_RATES: 'db_last_rates',
 };
 
 const DEFAULT_COOKIE_PREFS = {
-  essential: true, // Always active
+  essential: true,
   functional: true,
   decided: false,
   updatedAt: null,
@@ -19,7 +20,8 @@ const DEFAULT_COOKIE_PREFS = {
 const DEFAULT_FUNCTIONAL_PREFS = {
   tickAudio: false,
   defaultTerminal: 'ALL',
-  chartRange: '1D',
+  chartRange: 'LIVE',
+  theme: 'dark', // 'dark' | 'light' | 'system'
 };
 
 function safeGet(storage, key) {
@@ -34,7 +36,7 @@ function safeSet(storage, key, val) {
   try {
     storage.setItem(key, val);
   } catch {
-    // Ignore storage quota errors
+    // Ignore quota errors
   }
 }
 
@@ -76,6 +78,22 @@ export const authStorage = {
     safeRemove(localStorage, KEYS.USER);
     safeRemove(sessionStorage, KEYS.TOKEN);
     safeRemove(sessionStorage, KEYS.USER);
+  },
+};
+
+export const ratesCache = {
+  saveLastRates(rates) {
+    if (!rates) return;
+    safeSet(localStorage, KEYS.LAST_RATES, JSON.stringify(rates));
+  },
+  getLastRates() {
+    const raw = safeGet(localStorage, KEYS.LAST_RATES);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
   },
 };
 

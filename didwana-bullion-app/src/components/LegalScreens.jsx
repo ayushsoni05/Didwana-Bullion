@@ -323,37 +323,39 @@ export function LegalComplianceCards({ onOpenDoc, onOpenCookiePrefs }) {
       <button
         type="button"
         onClick={() => onOpenDoc('terms')}
-        className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-[#181818] px-4 py-3 text-left active:bg-white/5"
+        className="flex w-full items-center justify-between rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#121216] px-4 py-3 text-left active:opacity-80"
       >
         <div className="flex items-center gap-3">
-          <FileText className="h-4 w-4 text-[#B59A6C]" />
-          <span className="text-sm text-zinc-200">Terms &amp; Conditions</span>
+          <FileText className="h-4 w-4 text-[#8C6A2E] dark:text-[#C8A96E]" />
+          <span className="text-sm text-zinc-800 dark:text-zinc-200">Terms &amp; Conditions</span>
         </div>
-        <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
       </button>
 
       <button
         type="button"
         onClick={() => onOpenDoc('privacy')}
-        className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-[#181818] px-4 py-3 text-left active:bg-white/5"
+        className="flex w-full items-center justify-between rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#121216] px-4 py-3 text-left active:opacity-80"
       >
         <div className="flex items-center gap-3">
-          <ShieldCheck className="h-4 w-4 text-[#B59A6C]" />
-          <span className="text-sm text-zinc-200">Privacy Policy</span>
+          <ShieldCheck className="h-4 w-4 text-[#8C6A2E] dark:text-[#C8A96E]" />
+          <span className="text-sm text-zinc-800 dark:text-zinc-200">Privacy Policy</span>
         </div>
-        <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
       </button>
 
       <button
         type="button"
         onClick={onOpenCookiePrefs}
-        className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-[#181818] px-4 py-3 text-left active:bg-white/5"
+        className="flex w-full items-center justify-between rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#121216] px-4 py-3 text-left active:opacity-80"
       >
         <div className="flex items-center gap-3">
-          <Cookie className="h-4 w-4 text-[#B59A6C]" />
-          <span className="text-sm text-zinc-200">Cookies &amp; Storage Preferences</span>
+          <Cookie className="h-4 w-4 text-[#8C6A2E] dark:text-[#C8A96E]" />
+          <span className="text-sm text-zinc-800 dark:text-zinc-200">
+            Cookies &amp; Storage Preferences
+          </span>
         </div>
-        <span className="text-xs text-[#B59A6C]">Manage</span>
+        <span className="text-xs font-semibold text-[#8C6A2E] dark:text-[#C8A96E]">Manage</span>
       </button>
     </div>
   );

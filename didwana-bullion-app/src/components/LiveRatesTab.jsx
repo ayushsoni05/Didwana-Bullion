@@ -44,29 +44,29 @@ export default function LiveRatesTab({
     HB: {
       title: 'JODHPUR RATES',
       subtitle: 'Jodhpur Bullion Mandi',
-      accent: 'border-[#B59A6C]/40',
-      badge: 'bg-[#B59A6C]/15 text-[#E5C99B]',
+      accent: 'border-[#C8A96E]/45 dark:border-[#C8A96E]/35',
+      badge: 'bg-[#C8A96E]/15 text-[#8C6A2E] dark:text-[#DFC18A]',
     },
     MOSUN: {
       title: 'SUJANGARH RATES',
       subtitle: 'Sujangarh Bullion Mandi',
-      accent: 'border-sky-500/30',
-      badge: 'bg-sky-500/15 text-sky-300',
+      accent: 'border-sky-500/35 dark:border-sky-500/30',
+      badge: 'bg-sky-500/15 text-sky-700 dark:text-sky-300',
     },
     IBJA: {
       title: 'IBJA RATES',
       subtitle: 'India Bullion & Jewellers Assoc.',
-      accent: 'border-emerald-500/30',
-      badge: 'bg-emerald-500/15 text-emerald-300',
+      accent: 'border-emerald-500/35 dark:border-emerald-500/30',
+      badge: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
     },
   };
 
   const getSpreadVsIbja = (termId, productKey) => {
     if (termId === 'IBJA') return null;
-    const termBid = rates?.[termId]?.items?.[productKey]?.bid;
-    const ibjaBid = rates?.IBJA?.items?.[productKey]?.bid;
-    if (!termBid || !ibjaBid) return null;
-    return termBid - ibjaBid;
+    const termAsk = rates?.[termId]?.items?.[productKey]?.ask || rates?.[termId]?.items?.[productKey]?.bid;
+    const ibjaAsk = rates?.IBJA?.items?.[productKey]?.ask || rates?.IBJA?.items?.[productKey]?.bid;
+    if (!termAsk || !ibjaAsk) return null;
+    return termAsk - ibjaAsk;
   };
 
   const lastUpdatedText = rates?.timestamp
@@ -79,24 +79,26 @@ export default function LiveRatesTab({
 
   return (
     <div className="space-y-4 pb-28">
-      {/* Top Status & Controls Bar */}
-      <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#171717] px-3.5 py-2.5">
-        <div className="flex items-center gap-2">
+      {/* Top 24H Status & Controls Bar */}
+      <div className="flex items-center justify-between rounded-2xl border border-zinc-200 dark:border-[#9E7D47]/25 bg-white dark:bg-[#121216] px-3.5 py-2.5 shadow-sm">
+        <div className="flex items-center gap-2.5">
           <span
-            className={`inline-flex h-2 w-2 rounded-full ${
+            className={`inline-flex h-2.5 w-2.5 rounded-full ${
               streamStatus === 'LIVE'
-                ? 'bg-emerald-400 animate-pulse'
+                ? 'bg-emerald-500 animate-pulse'
                 : streamStatus === 'CONNECTING'
-                ? 'bg-amber-400 animate-pulse'
-                : 'bg-red-400'
+                ? 'bg-amber-500 animate-pulse'
+                : 'bg-red-500'
             }`}
           />
           <div>
-            <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase text-zinc-200">
-              <Radio className="h-3 w-3 text-[#B59A6C]" />
-              {streamStatus === 'LIVE' ? '0s Live Stream' : streamStatus}
+            <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase text-zinc-900 dark:text-[#F4EFE6]">
+              <Radio className="h-3 w-3 text-[#8C6A2E] dark:text-[#DFC18A]" />
+              {streamStatus === 'LIVE' ? '24H Live Stream' : streamStatus}
             </div>
-            <div className="text-[10px] text-zinc-500">Updated {lastUpdatedText} IST</div>
+            <div className="text-[10px] text-zinc-500 dark:text-zinc-400">
+              Updated {lastUpdatedText} IST
+            </div>
           </div>
         </div>
 
@@ -107,8 +109,8 @@ export default function LiveRatesTab({
             aria-label="Toggle tick audio"
             className={`rounded-xl border px-2.5 py-1.5 text-xs flex items-center gap-1.5 transition ${
               tickAudio
-                ? 'border-[#B59A6C]/50 bg-[#B59A6C]/15 text-[#E5C99B]'
-                : 'border-white/10 bg-white/5 text-zinc-400'
+                ? 'border-[#C8A96E] bg-[#C8A96E]/15 text-[#8C6A2E] dark:text-[#DFC18A]'
+                : 'border-zinc-200 dark:border-white/10 bg-zinc-100 dark:bg-white/5 text-zinc-500 dark:text-zinc-400'
             }`}
           >
             {tickAudio ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
@@ -119,64 +121,74 @@ export default function LiveRatesTab({
             type="button"
             onClick={onManualRefresh}
             aria-label="Refresh rates"
-            className="rounded-xl border border-white/10 bg-white/5 p-2 text-zinc-300 active:bg-white/10"
+            className="rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-100 dark:bg-white/5 p-2 text-zinc-700 dark:text-zinc-300 active:scale-95"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin text-[#B59A6C]' : ''}`} />
+            <RefreshCw
+              className={`h-3.5 w-3.5 ${
+                refreshing ? 'animate-spin text-[#8C6A2E] dark:text-[#DFC18A]' : ''
+              }`}
+            />
           </button>
         </div>
       </div>
 
-      {/* Live 3-Way Arbitrage Ribbon */}
+      {/* Live 3-Way Arbitrage Ribbon (Ask/Sell based) */}
       <div>
         <div className="mb-2 flex items-center justify-between px-1">
-          <h2 className="text-[11px] font-bold tracking-[0.14em] text-[#B59A6C] uppercase">
-            Live 3-Way Arbitrage Ribbon
+          <h2 className="text-[11px] font-bold tracking-[0.14em] text-[#8C6A2E] dark:text-[#DFC18A] uppercase">
+            Live 3-Way Arbitrage (Ask / Sell)
           </h2>
           <span className="text-[10px] text-zinc-500">Jodhpur • Sujangarh • IBJA</span>
         </div>
 
         <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
           {ARBITRAGE_PRODUCTS.map((prod) => {
-            const hb = rates?.HB?.items?.[prod.key]?.bid;
-            const mosun = rates?.MOSUN?.items?.[prod.key]?.bid;
-            const ibja = rates?.IBJA?.items?.[prod.key]?.bid;
+            const hb = rates?.HB?.items?.[prod.key]?.ask || rates?.HB?.items?.[prod.key]?.bid;
+            const mosun = rates?.MOSUN?.items?.[prod.key]?.ask || rates?.MOSUN?.items?.[prod.key]?.bid;
+            const ibja = rates?.IBJA?.items?.[prod.key]?.ask || rates?.IBJA?.items?.[prod.key]?.bid;
             const spread = hb && mosun ? hb - mosun : null;
 
             return (
               <div
                 key={prod.key}
-                className="min-w-[205px] shrink-0 rounded-2xl border border-white/10 bg-gradient-to-b from-[#1A1A1A] to-[#141414] p-3"
+                className="min-w-[215px] shrink-0 rounded-2xl border border-zinc-200 dark:border-[#9E7D47]/25 bg-white dark:bg-[#121216] p-3.5 shadow-sm"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#E5C99B]">{prod.label}</span>
-                  <span className="rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-zinc-400">
+                  <span className="text-xs font-bold text-[#8C6A2E] dark:text-[#DFC18A]">
+                    {prod.label}
+                  </span>
+                  <span className="rounded bg-zinc-100 dark:bg-white/5 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">
                     {prod.unit}
                   </span>
                 </div>
                 <div className="mt-2.5 space-y-1 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-zinc-400">Jodhpur Rates</span>
-                    <span className="font-mono font-semibold text-zinc-100">{formatINR(hb)}</span>
+                    <span className="text-zinc-500 dark:text-zinc-400">Jodhpur Rates</span>
+                    <span className="font-mono tabular-nums font-bold text-zinc-900 dark:text-[#F4EFE6]">
+                      {formatINR(hb)}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-400">Sujangarh Rates</span>
-                    <span className="font-mono font-semibold text-zinc-100">{formatINR(mosun)}</span>
+                    <span className="text-zinc-500 dark:text-zinc-400">Sujangarh Rates</span>
+                    <span className="font-mono tabular-nums font-bold text-zinc-900 dark:text-[#F4EFE6]">
+                      {formatINR(mosun)}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-400">IBJA Rates</span>
-                    <span className="font-mono font-semibold text-emerald-300">
+                    <span className="text-zinc-500 dark:text-zinc-400">IBJA Rates</span>
+                    <span className="font-mono tabular-nums font-bold text-emerald-700 dark:text-emerald-300">
                       {formatINR(ibja)}
                     </span>
                   </div>
                 </div>
-                <div className="mt-2 border-t border-white/5 pt-1.5 flex items-center justify-between text-[10px]">
+                <div className="mt-2 border-t border-zinc-100 dark:border-white/5 pt-1.5 flex items-center justify-between text-[10px]">
                   <span className="text-zinc-500">Jodhpur vs Sujangarh</span>
                   <span
-                    className={`font-mono font-semibold ${
+                    className={`font-mono tabular-nums font-semibold ${
                       spread > 0
-                        ? 'text-amber-300'
+                        ? 'text-amber-600 dark:text-amber-300'
                         : spread < 0
-                        ? 'text-sky-300'
+                        ? 'text-sky-600 dark:text-sky-300'
                         : 'text-zinc-400'
                     }`}
                   >
@@ -200,8 +212,8 @@ export default function LiveRatesTab({
               onClick={() => onSelectTerminal(t.id)}
               className={`shrink-0 rounded-xl px-3.5 py-2 text-[11px] font-bold tracking-wider uppercase transition ${
                 active
-                  ? 'bg-[#B59A6C] text-[#111111]'
-                  : 'border border-white/10 bg-[#171717] text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-gradient-to-r from-[#DFC18A] to-[#C8A96E] text-[#0B0B0D] shadow-sm'
+                  : 'border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#121216] text-zinc-600 dark:text-zinc-400'
               }`}
             >
               {t.label}
@@ -210,7 +222,7 @@ export default function LiveRatesTab({
         })}
       </div>
 
-      {/* Real-Time Live Tick Cards per Selected Terminal */}
+      {/* Terminal Live Rate Cards — ASK / SELL IN BIG HERO FONT */}
       <div className="space-y-4">
         {visibleTerminals.map((termId) => {
           const meta = terminalMeta[termId];
@@ -220,15 +232,17 @@ export default function LiveRatesTab({
           return (
             <section
               key={termId}
-              className={`rounded-2xl border ${meta.accent} bg-[#161616] p-3.5 shadow-lg`}
+              className={`rounded-2xl border ${meta.accent} bg-white dark:bg-[#121216] p-3.5 shadow-sm`}
             >
               <div className="mb-3 flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold tracking-wide text-zinc-100">{meta.title}</h3>
-                  <p className="text-[11px] text-zinc-400">{meta.subtitle}</p>
+                  <h3 className="text-sm font-bold tracking-wide text-zinc-900 dark:text-[#F4EFE6]">
+                    {meta.title}
+                  </h3>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">{meta.subtitle}</p>
                 </div>
                 <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${meta.badge}`}>
-                  {termData?.status || 'LIVE'}
+                  {termData?.status || '24H LIVE'}
                 </span>
               </div>
 
@@ -244,56 +258,68 @@ export default function LiveRatesTab({
                       ? 'animate-tick-down'
                       : '';
 
-                  const diffVsPrev =
-                    item.bid && prevItem.bid ? item.bid - prevItem.bid : 0;
+                  const askVal = item.ask || item.bid;
+                  const prevAskVal = prevItem.ask || prevItem.bid;
+                  const diffVsPrev = askVal && prevAskVal ? askVal - prevAskVal : 0;
                   const ibjaDiff = getSpreadVsIbja(termId, prod.key);
 
                   return (
                     <div
                       key={prod.key}
-                      className={`rounded-xl border border-white/8 bg-[#111111] p-3 transition ${flashClass}`}
+                      className={`rounded-xl border border-zinc-200 dark:border-white/8 bg-[#FAF8F4] dark:bg-[#0B0B0D] p-3.5 transition ${flashClass}`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-semibold text-zinc-200">{prod.label}</span>
+                          <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                            {prod.label}
+                          </span>
                           <span className="text-[10px] text-zinc-500">({prod.unit})</span>
                         </div>
                         {tickDir === 'up' && (
-                          <span className="flex items-center text-[10px] font-bold text-emerald-400">
+                          <span className="flex items-center gap-0.5 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
                             <ArrowUpRight className="h-3 w-3" />▲
                           </span>
                         )}
                         {tickDir === 'down' && (
-                          <span className="flex items-center text-[10px] font-bold text-red-400">
+                          <span className="flex items-center gap-0.5 rounded-full bg-red-500/15 px-1.5 py-0.5 text-[10px] font-bold text-red-600 dark:text-red-400">
                             <ArrowDownRight className="h-3 w-3" />▼
                           </span>
                         )}
                       </div>
 
-                      <div className="mt-2 flex items-baseline justify-between">
+                      {/* PRIMARY BIG HERO FONT: ASK / SELL */}
+                      <div className="mt-2.5 flex items-end justify-between gap-2">
                         <div>
-                          <div className="text-[10px] uppercase text-zinc-500">Bid / Buy</div>
-                          <div className="font-mono text-lg font-bold text-[#E5C99B]">
-                            {formatINR(item.bid)}
+                          <div className="text-[10px] font-semibold tracking-wider uppercase text-[#8C6A2E] dark:text-[#C8A96E]">
+                            Ask / Sell
+                          </div>
+                          <div className="font-mono tabular-nums text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-[#DFC18A]">
+                            {formatINR(askVal)}
                           </div>
                         </div>
+
+                        {/* SECONDARY SMALLER FONT: BID / BUY */}
                         <div className="text-right">
-                          <div className="text-[10px] uppercase text-zinc-500">Ask / Sell</div>
-                          <div className="font-mono text-sm font-semibold text-zinc-200">
-                            {formatINR(item.ask)}
+                          <div className="text-[9px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                            Bid / Buy
+                          </div>
+                          <div className="font-mono tabular-nums text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                            {formatINR(item.bid)}
                           </div>
                         </div>
                       </div>
 
-                      <div className="mt-2 flex items-center justify-between border-t border-white/5 pt-1.5 text-[10px] text-zinc-400">
-                        <div className="flex gap-2">
+                      <div className="mt-2.5 flex items-center justify-between border-t border-zinc-200/80 dark:border-white/5 pt-2 text-[10px] text-zinc-500 dark:text-zinc-400">
+                        <div className="flex gap-2 tabular-nums">
                           <span>H: {formatINR(item.high)}</span>
                           <span>L: {formatINR(item.low)}</span>
                         </div>
                         {ibjaDiff !== null ? (
                           <span
-                            className={`flex items-center gap-0.5 font-mono font-medium ${
-                              ibjaDiff >= 0 ? 'text-amber-300' : 'text-emerald-400'
+                            className={`flex items-center gap-0.5 font-mono tabular-nums font-semibold ${
+                              ibjaDiff >= 0
+                                ? 'text-amber-600 dark:text-amber-300'
+                                : 'text-emerald-600 dark:text-emerald-400'
                             }`}
                           >
                             {ibjaDiff >= 0 ? (
@@ -304,7 +330,7 @@ export default function LiveRatesTab({
                             vs IBJA: {formatDiff(ibjaDiff)}
                           </span>
                         ) : (
-                          <span className="text-emerald-400/90 font-medium">
+                          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
                             {diffVsPrev !== 0 ? formatDiff(diffVsPrev) : 'Official Benchmark'}
                           </span>
                         )}

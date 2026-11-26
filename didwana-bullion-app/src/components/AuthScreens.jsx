@@ -183,21 +183,21 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#111111] px-5 py-8 flex flex-col justify-center safe-top safe-bottom">
+    <div className="min-h-screen bg-[#F8F6F1] dark:bg-[#0B0B0D] px-5 py-8 flex flex-col justify-center safe-top safe-bottom">
       <div className="mx-auto w-full max-w-md">
         {/* Brand Header */}
         <div className="mb-6 flex flex-col items-center text-center">
           <GoldCrest size={56} />
-          <h1 className="mt-3 text-xl font-bold tracking-[0.14em] text-[#E5C99B] uppercase">
+          <h1 className="mt-3 text-xl font-bold tracking-[0.14em] text-[#8C6A2E] dark:text-[#DFC18A] uppercase">
             {APP_INFO.name}
           </h1>
-          <p className="mt-0.5 text-[11px] tracking-widest text-zinc-400 uppercase">
+          <p className="mt-0.5 text-[11px] tracking-widest text-zinc-500 dark:text-zinc-400 uppercase">
             {APP_INFO.tagline}
           </p>
         </div>
 
         {/* Auth Card */}
-        <div className="rounded-2xl border border-white/10 bg-[#171717] p-5 shadow-2xl">
+        <div className="rounded-2xl border border-zinc-200 dark:border-[#9E7D47]/25 bg-white dark:bg-[#121216] p-5 shadow-2xl">
           {mode !== 'forgot' ? (
             <div className="mb-5 grid grid-cols-2 rounded-xl bg-[#111111] p-1 border border-white/5">
               <button

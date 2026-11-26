@@ -133,7 +133,8 @@ export const pricesApi = {
   },
 
   async getHistory(range = '1D') {
-    return request(`/api/prices/history?range=${encodeURIComponent(range)}`, {
+    const normalizedRange = String(range || '1D').toLowerCase();
+    return request(`/api/prices/history?range=${encodeURIComponent(normalizedRange)}`, {
       method: 'GET',
     });
   },
@@ -142,22 +143,38 @@ export const pricesApi = {
     let eventSource = null;
     let closed = false;
     let retryTimer = null;
+    let watchdogTimer = null;
+    let lastFrameAt = Date.now();
+
+    const clearTimers = () => {
+      if (retryTimer) clearTimeout(retryTimer);
+      if (watchdogTimer) clearInterval(watchdogTimer);
+      retryTimer = null;
+      watchdogTimer = null;
+    };
 
     const connect = () => {
       if (closed) return;
+      clearTimers();
+      eventSource?.close();
       onStatus?.('CONNECTING');
+
       const token = authStorage.getToken();
       const url = token
         ? `${API_BASE_URL}/api/prices/stream?token=${encodeURIComponent(token)}`
         : `${API_BASE_URL}/api/prices/stream`;
 
+      lastFrameAt = Date.now();
       eventSource = new EventSource(url);
 
       eventSource.onopen = () => {
+        lastFrameAt = Date.now();
         onStatus?.('LIVE');
       };
 
       eventSource.onmessage = (event) => {
+        lastFrameAt = Date.now();
+        onStatus?.('LIVE');
         try {
           const parsed = JSON.parse(event.data);
           onData?.(parsed);
@@ -169,17 +186,31 @@ export const pricesApi = {
       eventSource.onerror = () => {
         onStatus?.('RECONNECTING');
         eventSource?.close();
-        if (!closed) {
-          retryTimer = setTimeout(connect, 3000);
+        if (!closed && !retryTimer) {
+          retryTimer = setTimeout(connect, 2500);
         }
       };
+
+      // 8-second stall watchdog for 24-hour non-stop reliability
+      watchdogTimer = setInterval(() => {
+        if (!closed && Date.now() - lastFrameAt > 8500) {
+          onStatus?.('RECONNECTING');
+          connect();
+        }
+      }, 3000);
     };
 
     connect();
 
+    const handleResume = () => {
+      if (!closed) connect();
+    };
+    window.addEventListener('online', handleResume);
+
     return () => {
       closed = true;
-      if (retryTimer) clearTimeout(retryTimer);
+      clearTimers();
+      window.removeEventListener('online', handleResume);
       eventSource?.close();
     };
   },

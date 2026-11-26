@@ -19,5 +19,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: Didwana Bullion ${{ github.ref_name }}
-          files: releases/didwana-bullion-v1.0.0.apk
+          files: releases/*.apk
           generate_release_notes: true

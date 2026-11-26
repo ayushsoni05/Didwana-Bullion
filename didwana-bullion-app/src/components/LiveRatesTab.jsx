@@ -10,6 +10,8 @@ import {
   ArrowDownRight,
 } from 'lucide-react';
 import { ARBITRAGE_PRODUCTS, TERMINALS } from '../config/constants';
+import { BentoCard } from './ui/BentoCard';
+import { SegmentedTabs } from './ui/SegmentedTabs';
 
 function formatINR(num) {
   if (!Number.isFinite(Number(num)) || Number(num) <= 0) return '—';
@@ -79,60 +81,62 @@ export default function LiveRatesTab({
 
   return (
     <div className="space-y-4 pb-28">
-      {/* Top 24H Status & Controls Bar */}
-      <div className="flex items-center justify-between rounded-2xl border border-zinc-200 dark:border-[#9E7D47]/25 bg-white dark:bg-[#121216] px-3.5 py-2.5 shadow-sm">
-        <div className="flex items-center gap-2.5">
-          <span
-            className={`inline-flex h-2.5 w-2.5 rounded-full ${
-              streamStatus === 'LIVE'
-                ? 'bg-emerald-500 animate-pulse'
-                : streamStatus === 'CONNECTING'
-                ? 'bg-amber-500 animate-pulse'
-                : 'bg-red-500'
-            }`}
-          />
-          <div>
-            <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase text-zinc-900 dark:text-[#F4EFE6]">
-              <Radio className="h-3 w-3 text-[#8C6A2E] dark:text-[#DFC18A]" />
-              {streamStatus === 'LIVE' ? '24H Live Stream' : streamStatus}
-            </div>
-            <div className="text-[10px] text-zinc-500 dark:text-zinc-400">
-              Updated {lastUpdatedText} IST
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onToggleAudio}
-            aria-label="Toggle tick audio"
-            className={`rounded-xl border px-2.5 py-1.5 text-xs flex items-center gap-1.5 transition ${
-              tickAudio
-                ? 'border-[#C8A96E] bg-[#C8A96E]/15 text-[#8C6A2E] dark:text-[#DFC18A]'
-                : 'border-zinc-200 dark:border-white/10 bg-zinc-100 dark:bg-white/5 text-zinc-500 dark:text-zinc-400'
-            }`}
-          >
-            {tickAudio ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-            <span className="text-[10px] font-semibold uppercase">Tick</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onManualRefresh}
-            aria-label="Refresh rates"
-            className="rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-100 dark:bg-white/5 p-2 text-zinc-700 dark:text-zinc-300 active:scale-95"
-          >
-            <RefreshCw
-              className={`h-3.5 w-3.5 ${
-                refreshing ? 'animate-spin text-[#8C6A2E] dark:text-[#DFC18A]' : ''
+      {/* Top 24H Status & Controls Bento Bar */}
+      <BentoCard glow={false} className="px-3.5 py-2.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span
+              className={`inline-flex h-2.5 w-2.5 rounded-full ${
+                streamStatus === 'LIVE'
+                  ? 'bg-emerald-500 animate-pulse'
+                  : streamStatus === 'CONNECTING'
+                  ? 'bg-amber-500 animate-pulse'
+                  : 'bg-red-500'
               }`}
             />
-          </button>
-        </div>
-      </div>
+            <div>
+              <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase text-zinc-900 dark:text-[#F4EFE6]">
+                <Radio className="h-3 w-3 text-[#8C6A2E] dark:text-[#DFC18A]" />
+                {streamStatus === 'LIVE' ? '24H Live Stream' : streamStatus}
+              </div>
+              <div className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                Updated {lastUpdatedText} IST
+              </div>
+            </div>
+          </div>
 
-      {/* Live 3-Way Arbitrage Ribbon (Ask/Sell based) */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onToggleAudio}
+              aria-label="Toggle tick audio"
+              className={`rounded-xl border px-2.5 py-1.5 text-xs flex items-center gap-1.5 transition active:scale-95 ${
+                tickAudio
+                  ? 'border-[#C8A96E] bg-[#C8A96E]/15 text-[#8C6A2E] dark:text-[#DFC18A]'
+                  : 'border-zinc-200 dark:border-white/10 bg-zinc-100 dark:bg-white/5 text-zinc-500 dark:text-zinc-400'
+              }`}
+            >
+              {tickAudio ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+              <span className="text-[10px] font-semibold uppercase">Tick</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onManualRefresh}
+              aria-label="Refresh rates"
+              className="rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-100 dark:bg-white/5 p-2 text-zinc-700 dark:text-zinc-300 active:scale-95 transition"
+            >
+              <RefreshCw
+                className={`h-3.5 w-3.5 ${
+                  refreshing ? 'animate-spin text-[#8C6A2E] dark:text-[#DFC18A]' : ''
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+      </BentoCard>
+
+      {/* Live 3-Way Arbitrage Ribbon */}
       <div>
         <div className="mb-2 flex items-center justify-between px-1">
           <h2 className="text-[11px] font-bold tracking-[0.14em] text-[#8C6A2E] dark:text-[#DFC18A] uppercase">
@@ -149,15 +153,12 @@ export default function LiveRatesTab({
             const spread = hb && mosun ? hb - mosun : null;
 
             return (
-              <div
-                key={prod.key}
-                className="min-w-[215px] shrink-0 rounded-2xl border border-zinc-200 dark:border-[#9E7D47]/25 bg-white dark:bg-[#121216] p-3.5 shadow-sm"
-              >
+              <BentoCard key={prod.key} className="min-w-[218px] shrink-0 p-3.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-[#8C6A2E] dark:text-[#DFC18A]">
                     {prod.label}
                   </span>
-                  <span className="rounded bg-zinc-100 dark:bg-white/5 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">
+                  <span className="rounded-md bg-zinc-100 dark:bg-white/5 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">
                     {prod.unit}
                   </span>
                 </div>
@@ -195,34 +196,22 @@ export default function LiveRatesTab({
                     {formatDiff(spread)}
                   </span>
                 </div>
-              </div>
+              </BentoCard>
             );
           })}
         </div>
       </div>
 
-      {/* Terminal Switcher Tabs */}
-      <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
-        {TERMINALS.map((t) => {
-          const active = activeTerminal === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => onSelectTerminal(t.id)}
-              className={`shrink-0 rounded-xl px-3.5 py-2 text-[11px] font-bold tracking-wider uppercase transition ${
-                active
-                  ? 'bg-gradient-to-r from-[#DFC18A] to-[#C8A96E] text-[#0B0B0D] shadow-sm'
-                  : 'border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#121216] text-zinc-600 dark:text-zinc-400'
-              }`}
-            >
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
+      {/* Spring-Animated Segmented Terminal Switcher */}
+      <SegmentedTabs
+        tabs={TERMINALS}
+        activeId={activeTerminal}
+        onChange={onSelectTerminal}
+        layoutId="terminal-pill"
+        scrollable
+      />
 
-      {/* Terminal Live Rate Cards — ASK / SELL IN BIG HERO FONT */}
+      {/* Terminal Live Rate Bento Cards — ASK / SELL IN BIG HERO FONT */}
       <div className="space-y-4">
         {visibleTerminals.map((termId) => {
           const meta = terminalMeta[termId];
@@ -230,10 +219,7 @@ export default function LiveRatesTab({
           const items = termData?.items || {};
 
           return (
-            <section
-              key={termId}
-              className={`rounded-2xl border ${meta.accent} bg-white dark:bg-[#121216] p-3.5 shadow-sm`}
-            >
+            <BentoCard key={termId} className={`p-3.5 ${meta.accent}`}>
               <div className="mb-3 flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold tracking-wide text-zinc-900 dark:text-[#F4EFE6]">
@@ -339,7 +325,7 @@ export default function LiveRatesTab({
                   );
                 })}
               </div>
-            </section>
+            </BentoCard>
           );
         })}
       </div>

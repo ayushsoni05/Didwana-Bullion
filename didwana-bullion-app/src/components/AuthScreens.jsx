@@ -15,6 +15,8 @@ import { APP_INFO } from '../config/constants';
 import { authApi } from '../services/api';
 import { authStorage, consentStorage } from '../services/storage';
 import { GoldCrest } from './SplashGate';
+import { ShimmerButton } from './ui/ShimmerButton';
+import { SegmentedTabs } from './ui/SegmentedTabs';
 
 function evaluatePassword(password) {
   const checks = {
@@ -199,30 +201,16 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
         {/* Auth Card */}
         <div className="rounded-2xl border border-zinc-200 dark:border-[#9E7D47]/25 bg-white dark:bg-[#121216] p-5 shadow-2xl">
           {mode !== 'forgot' ? (
-            <div className="mb-5 grid grid-cols-2 rounded-xl bg-[#111111] p-1 border border-white/5">
-              <button
-                type="button"
-                onClick={() => switchMode('signin')}
-                className={`rounded-lg py-2 text-xs font-semibold tracking-wide transition ${
-                  mode === 'signin'
-                    ? 'bg-[#B59A6C] text-[#111111]'
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-              >
-                SIGN IN
-              </button>
-              <button
-                type="button"
-                onClick={() => switchMode('signup')}
-                className={`rounded-lg py-2 text-xs font-semibold tracking-wide transition ${
-                  mode === 'signup'
-                    ? 'bg-[#B59A6C] text-[#111111]'
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-              >
-                SIGN UP
-              </button>
-            </div>
+            <SegmentedTabs
+              className="mb-5"
+              layoutId="auth-mode-pill"
+              activeId={mode}
+              onChange={switchMode}
+              tabs={[
+                { id: 'signin', label: 'Sign In' },
+                { id: 'signup', label: 'Sign Up' },
+              ]}
+            />
           ) : (
             <button
               type="button"
@@ -311,13 +299,9 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                 </button>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-xl bg-[#B59A6C] py-3 text-sm font-bold tracking-wide text-[#111111] transition active:scale-[0.99] disabled:opacity-50"
-              >
+              <ShimmerButton type="submit" disabled={loading} className="w-full py-3.5">
                 {loading ? 'Signing In...' : 'Sign In to Live Terminals'}
-              </button>
+              </ShimmerButton>
             </form>
           )}
 
@@ -486,13 +470,9 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                 </span>
               </label>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-xl bg-[#B59A6C] py-3 text-sm font-bold tracking-wide text-[#111111] transition active:scale-[0.99] disabled:opacity-50"
-              >
+              <ShimmerButton type="submit" disabled={loading} className="w-full py-3.5">
                 {loading ? 'Creating Account...' : 'Create Secure Account'}
-              </button>
+              </ShimmerButton>
             </form>
           )}
 

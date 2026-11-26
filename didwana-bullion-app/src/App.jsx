@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Activity, LineChart, Moon, Sun, UserCircle2 } from 'lucide-react';
 import { App as CapApp } from '@capacitor/app';
 import { SplashScreen } from '@capacitor/splash-screen';
@@ -340,47 +341,36 @@ export default function App() {
             />
           )}
 
-          {/* Floating Mobile Bottom Navigation (3 Focused Tabs) */}
+          {/* Floating Mobile Bottom Navigation (3 Focused Tabs with 21st.dev Spring Pill) */}
           <nav className="fixed inset-x-0 bottom-3 z-30 mx-auto max-w-md px-4 safe-bottom">
-            <div className="grid grid-cols-3 rounded-2xl border border-zinc-200 dark:border-[#9E7D47]/25 bg-white/95 dark:bg-[#121216]/95 p-1.5 shadow-2xl backdrop-blur-md">
-              <button
-                type="button"
-                onClick={() => setActiveTab('rates')}
-                className={`flex flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-bold transition ${
-                  activeTab === 'rates'
-                    ? 'bg-gradient-to-r from-[#DFC18A] to-[#C8A96E] text-[#0B0B0D]'
-                    : 'text-zinc-500 dark:text-zinc-400'
-                }`}
-              >
-                <Activity className="h-4 w-4" />
-                Live Rates
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('charts')}
-                className={`flex flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-bold transition ${
-                  activeTab === 'charts'
-                    ? 'bg-gradient-to-r from-[#DFC18A] to-[#C8A96E] text-[#0B0B0D]'
-                    : 'text-zinc-500 dark:text-zinc-400'
-                }`}
-              >
-                <LineChart className="h-4 w-4" />
-                Charts
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('account')}
-                className={`flex flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-bold transition ${
-                  activeTab === 'account'
-                    ? 'bg-gradient-to-r from-[#DFC18A] to-[#C8A96E] text-[#0B0B0D]'
-                    : 'text-zinc-500 dark:text-zinc-400'
-                }`}
-              >
-                <UserCircle2 className="h-4 w-4" />
-                Account
-              </button>
+            <div className="grid grid-cols-3 rounded-2xl border border-zinc-200 dark:border-[#9E7D47]/30 bg-white/95 dark:bg-[#121216]/95 p-1.5 shadow-2xl backdrop-blur-md">
+              {[
+                { id: 'rates', label: 'Live Rates', Icon: Activity },
+                { id: 'charts', label: 'Charts', Icon: LineChart },
+                { id: 'account', label: 'Account', Icon: UserCircle2 },
+              ].map(({ id, label, Icon }) => {
+                const active = activeTab === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setActiveTab(id)}
+                    className={`relative z-10 flex flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-bold transition-colors ${
+                      active ? 'text-[#0B0B0D]' : 'text-zinc-500 dark:text-zinc-400'
+                    }`}
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="bottom-nav-pill"
+                        transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                        className="absolute inset-0 -z-10 rounded-xl bg-gradient-to-r from-[#DFC18A] via-[#C8A96E] to-[#B5924C] shadow-sm"
+                      />
+                    )}
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </nav>
         </div>

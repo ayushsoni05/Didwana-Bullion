@@ -43,6 +43,16 @@
   }
 }
 
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-120%);
+  }
+  60%,
+  100% {
+    transform: translateX(140%);
+  }
+}
+
 .animate-tick-up {
   animation: tickUpFlash 0.9s ease-out;
 }

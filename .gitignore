@@ -1,0 +1,28 @@
+# Dependencies & Env
+node_modules/
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+build/
+*.log
+
+# Android Gradle & Build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/app/release/
+
+# Signing keys (NEVER commit)
+*.jks
+*.keystore
+key.properties
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

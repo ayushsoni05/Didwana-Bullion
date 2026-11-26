@@ -53,7 +53,7 @@ export default function SplashGate({ fadingOut }) {
       </div>
 
       <div className="absolute bottom-8 text-center text-[10px] tracking-wider text-zinc-500 uppercase">
-        HB Jodhpur • Mosun &amp; Sons • IBJA Official
+        Jodhpur Rates • Sujangarh Rates • IBJA Rates
       </div>
     </div>
   );

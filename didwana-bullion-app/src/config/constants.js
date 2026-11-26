@@ -16,9 +16,9 @@ export const APP_INFO = {
 
 export const TERMINALS = [
   { id: 'ALL', label: 'ALL TERMINALS', short: 'All' },
-  { id: 'HB', label: 'HB JODHPUR', short: 'HB Jodhpur', location: 'Jodhpur Mandi' },
-  { id: 'MOSUN', label: 'MOSUN & SONS', short: 'Mosun & Sons', location: 'Sujangarh Mandi' },
-  { id: 'IBJA', label: 'IBJA OFFICIAL', short: 'IBJA Official', location: 'National Benchmark' },
+  { id: 'HB', label: 'JODHPUR RATES', short: 'Jodhpur Rates', location: 'Jodhpur Mandi' },
+  { id: 'MOSUN', label: 'SUJANGARH RATES', short: 'Sujangarh Rates', location: 'Sujangarh Mandi' },
+  { id: 'IBJA', label: 'IBJA RATES', short: 'IBJA Rates', location: 'National Benchmark' },
 ];
 
 export const ARBITRAGE_PRODUCTS = [

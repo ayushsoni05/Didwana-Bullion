@@ -42,19 +42,19 @@ export default function LiveRatesTab({
 
   const terminalMeta = {
     HB: {
-      title: 'HB JODHPUR',
-      subtitle: 'Himanshu Bullion • Jodhpur Mandi',
+      title: 'JODHPUR RATES',
+      subtitle: 'Jodhpur Bullion Mandi',
       accent: 'border-[#B59A6C]/40',
       badge: 'bg-[#B59A6C]/15 text-[#E5C99B]',
     },
     MOSUN: {
-      title: 'MOSUN & SONS',
+      title: 'SUJANGARH RATES',
       subtitle: 'Sujangarh Bullion Mandi',
       accent: 'border-sky-500/30',
       badge: 'bg-sky-500/15 text-sky-300',
     },
     IBJA: {
-      title: 'IBJA OFFICIAL',
+      title: 'IBJA RATES',
       subtitle: 'India Bullion & Jewellers Assoc.',
       accent: 'border-emerald-500/30',
       badge: 'bg-emerald-500/15 text-emerald-300',
@@ -132,7 +132,7 @@ export default function LiveRatesTab({
           <h2 className="text-[11px] font-bold tracking-[0.14em] text-[#B59A6C] uppercase">
             Live 3-Way Arbitrage Ribbon
           </h2>
-          <span className="text-[10px] text-zinc-500">HB • Mosun • IBJA</span>
+          <span className="text-[10px] text-zinc-500">Jodhpur • Sujangarh • IBJA</span>
         </div>
 
         <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
@@ -155,22 +155,22 @@ export default function LiveRatesTab({
                 </div>
                 <div className="mt-2.5 space-y-1 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-zinc-400">HB Jodhpur</span>
+                    <span className="text-zinc-400">Jodhpur Rates</span>
                     <span className="font-mono font-semibold text-zinc-100">{formatINR(hb)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-400">Mosun &amp; Sons</span>
+                    <span className="text-zinc-400">Sujangarh Rates</span>
                     <span className="font-mono font-semibold text-zinc-100">{formatINR(mosun)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-400">IBJA Official</span>
+                    <span className="text-zinc-400">IBJA Rates</span>
                     <span className="font-mono font-semibold text-emerald-300">
                       {formatINR(ibja)}
                     </span>
                   </div>
                 </div>
                 <div className="mt-2 border-t border-white/5 pt-1.5 flex items-center justify-between text-[10px]">
-                  <span className="text-zinc-500">HB vs Mosun</span>
+                  <span className="text-zinc-500">Jodhpur vs Sujangarh</span>
                   <span
                     className={`font-mono font-semibold ${
                       spread > 0

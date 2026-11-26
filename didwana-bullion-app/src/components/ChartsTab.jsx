@@ -147,11 +147,11 @@ export default function ChartsTab({ rates, initialRange = '1D', onRangeChange })
         <div className="mb-3 flex flex-wrap items-center gap-4 text-[11px]">
           <span className="flex items-center gap-1.5 text-[#E5C99B]">
             <span className="h-2 w-2 rounded-full bg-[#B59A6C]" />
-            HB Jodhpur: ₹{Math.round(latest.HB || 0).toLocaleString('en-IN')}
+            Jodhpur: ₹{Math.round(latest.HB || 0).toLocaleString('en-IN')}
           </span>
           <span className="flex items-center gap-1.5 text-sky-300">
             <span className="h-2 w-2 rounded-full bg-sky-400" />
-            Mosun: ₹{Math.round(latest.MOSUN || 0).toLocaleString('en-IN')}
+            Sujangarh: ₹{Math.round(latest.MOSUN || 0).toLocaleString('en-IN')}
           </span>
           <span className="flex items-center gap-1.5 text-emerald-300">
             <span className="h-2 w-2 rounded-full bg-emerald-400" />

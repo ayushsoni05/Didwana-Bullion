@@ -3,7 +3,8 @@ export const API_BASE_URL =
   'https://glimmr-jewellry-e-commerce-platform-5.onrender.com';
 
 export const AUTH_BASE_URL =
-  import.meta.env.VITE_AUTH_BASE_URL || API_BASE_URL;
+  import.meta.env.VITE_AUTH_BASE_URL ||
+  'https://didwana-bullion-backend.onrender.com';
 
 export const APP_INFO = {
   name: 'Didwana Bullion',

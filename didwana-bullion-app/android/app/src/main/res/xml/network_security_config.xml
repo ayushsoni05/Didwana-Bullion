@@ -6,6 +6,7 @@
         </trust-anchors>
     </base-config>
     <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">didwana-bullion-backend.onrender.com</domain>
         <domain includeSubdomains="true">glimmr-jewellry-e-commerce-platform-5.onrender.com</domain>
         <trust-anchors>
             <certificates src="system" />

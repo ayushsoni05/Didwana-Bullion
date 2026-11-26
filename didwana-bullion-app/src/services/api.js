@@ -207,8 +207,8 @@ function findProduct(products, matcher) {
  */
 export function normalizeBullionPayload(raw) {
   if (!raw || typeof raw !== 'object') return null;
-  const data = raw.data || raw.rates || raw;
-  const now = data.updatedAt || data.lastUpdated || data.timestamp || new Date().toISOString();
+  const data = raw.payload || raw.data || raw.rates || raw;
+  const now = data.updatedAt || data.lastUpdated || data.timestamp || raw.timestamp || new Date().toISOString();
 
   // 1. HB Jodhpur (himanshuBullion)
   const hb = data.himanshuBullion || data.hb || data.HB || {};
@@ -298,8 +298,8 @@ export function normalizeBullionPayload(raw) {
     },
   };
 
-  // 3. IBJA Official (/api/prices/ibja-live or data.ibja)
-  const ibja = data.ibja || data.ibjaOfficial || data.IBJA || {};
+  // 3. IBJA Official (payload.ibjaBullion or /api/prices/ibja-live)
+  const ibja = data.ibjaBullion || data.ibja || data.ibjaOfficial || data.IBJA || {};
   const ibjaSum = ibja.summary || data.summary || {};
   const IBJA = {
     updatedAt: ibja.lastUpdated || now,

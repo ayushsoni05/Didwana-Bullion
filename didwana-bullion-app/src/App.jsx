@@ -40,8 +40,11 @@ export default function App() {
   const [refreshing, setRefreshing] = useState(false);
 
   const ratesRef = useRef(null);
+  const tickTimerRef = useRef(null);
   const tickAudioRef = useRef(prefs.tickAudio);
-  tickAudioRef.current = prefs.tickAudio;
+  useEffect(() => {
+    tickAudioRef.current = prefs.tickAudio;
+  }, [prefs.tickAudio]);
 
   const applyNormalizedRates = useCallback((normalized) => {
     if (!normalized) return;
@@ -53,8 +56,12 @@ export default function App() {
         ['gold995', 'gold916', 'silverPeti', 'silverChorsa'].forEach((prodKey) => {
           const curBid = normalized[termId]?.items?.[prodKey]?.bid;
           const oldBid = prev[termId]?.items?.[prodKey]?.bid;
-          if (curBid && oldBid && curBid !== oldBid) {
-            const dir = curBid > oldBid ? 'up' : 'down';
+          const curAsk = normalized[termId]?.items?.[prodKey]?.ask;
+          const oldAsk = prev[termId]?.items?.[prodKey]?.ask;
+          const curVal = curBid || curAsk;
+          const oldVal = oldBid || oldAsk;
+          if (curVal && oldVal && curVal !== oldVal) {
+            const dir = curVal > oldVal ? 'up' : 'down';
             nextTicks[`${termId}_${prodKey}`] = dir;
             if (!playedSound && tickAudioRef.current) {
               playTickSound(dir);
@@ -64,8 +71,9 @@ export default function App() {
         });
       });
       if (Object.keys(nextTicks).length > 0) {
-        setTicks(nextTicks);
-        setTimeout(() => setTicks({}), 900);
+        setTicks((prevTicks) => ({ ...prevTicks, ...nextTicks }));
+        if (tickTimerRef.current) clearTimeout(tickTimerRef.current);
+        tickTimerRef.current = setTimeout(() => setTicks({}), 1200);
       }
       setPrevRates(prev);
     }
@@ -172,18 +180,30 @@ export default function App() {
     };
   }, [legalDoc, showCookieModal, activeTab, isAuthenticated]);
 
-  // Subscribe to 0s SSE stream when authenticated
+  // Subscribe to 0s SSE stream when authenticated (+ safety fallback poll if SSE drops)
   useEffect(() => {
     if (!isAuthenticated) return undefined;
     fetchLatestOnce();
+    let currentStatus = 'CONNECTING';
     const unsubscribe = pricesApi.subscribeStream({
-      onStatus: setStreamStatus,
+      onStatus: (s) => {
+        currentStatus = s;
+        setStreamStatus(s);
+      },
       onData: (raw) => {
         const norm = normalizeBullionPayload(raw);
         if (norm) applyNormalizedRates(norm);
       },
     });
-    return () => unsubscribe();
+    const fallbackInterval = setInterval(() => {
+      if (currentStatus !== 'LIVE') {
+        fetchLatestOnce();
+      }
+    }, 2500);
+    return () => {
+      unsubscribe();
+      clearInterval(fallbackInterval);
+    };
   }, [isAuthenticated, fetchLatestOnce, applyNormalizedRates]);
 
   const handleUpdatePrefs = (partial) => {

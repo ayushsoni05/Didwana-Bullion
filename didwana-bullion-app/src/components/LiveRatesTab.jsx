@@ -1,33 +1,25 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
+  Bell,
   Calculator,
   ArrowUpRight,
   ArrowDownRight,
-  TrendingUp,
   Volume2,
   VolumeX,
   RefreshCw,
+  Radio,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ARBITRAGE_PRODUCTS } from '../config/constants';
-import { GoldCrest } from './SplashGate';
 
 function formatINR(num) {
   if (!Number.isFinite(Number(num)) || Number(num) <= 0) return '—';
   return `₹${Math.round(Number(num)).toLocaleString('en-IN')}`;
 }
 
-function formatDiff(val) {
-  if (!Number.isFinite(Number(val))) return '—';
-  const rounded = Math.round(Number(val));
-  if (rounded === 0) return '₹0';
-  return `${rounded > 0 ? '+' : '-'}₹${Math.abs(rounded).toLocaleString('en-IN')}`;
-}
-
 const TERMINAL_TABS = [
   { id: 'HB', label: 'Jodhpur Rates', subtitle: 'Jodhpur Bullion Mandi' },
-  { id: 'MOSUN', label: 'Sujangarh Rates', subtitle: 'Sujangarh Bullion Mandi' },
-  { id: 'IBJA', label: 'IBJA Rates', subtitle: 'Official Benchmark' },
+  { id: 'MOSUN', label: 'Sujangarh Rates', subtitle: 'Sujangarh Bullion Mandi (Cash & RTGS)' },
+  { id: 'IBJA', label: 'IBJA Rates', subtitle: 'Official Benchmark (Ex-GST & +3% GST)' },
 ];
 
 export default function LiveRatesTab({
@@ -41,16 +33,19 @@ export default function LiveRatesTab({
   onManualRefresh,
   refreshing,
   onOpenCalculator,
+  onOpenAlertFor,
 }) {
+  const [metalFilter, setMetalFilter] = useState('ALL'); // 'ALL' | 'gold' | 'silver'
   const currentTerm = activeTerminal === 'ALL' ? 'HB' : activeTerminal;
   const termMeta = TERMINAL_TABS.find((t) => t.id === currentTerm) || TERMINAL_TABS[0];
-  const items = rates?.[currentTerm]?.items || {};
 
-  const heroGold = rates?.HB?.items?.gold995?.ask || rates?.HB?.items?.gold995?.bid;
-  const heroBid = rates?.HB?.items?.gold995?.bid;
-  const ibjaGold = rates?.IBJA?.items?.gold995?.ask || rates?.IBJA?.items?.gold995?.bid;
-  const spreadDiff = heroGold && ibjaGold ? heroGold - ibjaGold : null;
+  const rawList = rates?.[currentTerm]?.list || [];
+  const filteredList = useMemo(() => {
+    if (metalFilter === 'ALL') return rawList;
+    return rawList.filter((item) => item.metal === metalFilter);
+  }, [rawList, metalFilter]);
 
+  const spot = rates?.spot || {};
   const lastUpdatedText = rates?.timestamp
     ? new Date(rates.timestamp).toLocaleTimeString('en-IN', {
         hour: '2-digit',
@@ -60,104 +55,64 @@ export default function LiveRatesTab({
     : '--:--:--';
 
   return (
-    <div className="space-y-5 pb-28">
-      {/* 1. Clean Behance Hero Gold Banner */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="rounded-3xl bg-gradient-to-br from-[#E8C97A] via-[#DDB965] to-[#C9A452] p-5 text-[#111111] shadow-[0_20px_50px_-14px_rgba(232,201,122,0.4)]"
-      >
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3.5">
-            <GoldCrest size={52} />
-            <div>
-              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#111111]/80">
-                <span
-                  className={`h-2 w-2 rounded-full ${
-                    streamStatus === 'LIVE' ? 'bg-red-600 animate-pulse' : 'bg-amber-700'
-                  }`}
-                />
-                <span>Live Price • Gold 995</span>
-              </div>
-              <div className="mt-1 font-mono tabular-nums text-3xl font-extrabold tracking-tight text-[#111111]">
-                {formatINR(heroGold)}
-              </div>
-              <div className="mt-0.5 text-[11px] font-semibold text-[#111111]/75 tabular-nums">
-                Bid / Buy: {formatINR(heroBid)}
-              </div>
-            </div>
-          </div>
-
-          <span className="rounded-full bg-[#111111] px-3 py-1 text-[10px] font-bold text-[#E8C97A]">
-            24K • 999
+    <div className="space-y-4 pb-28">
+      {/* 1. Institutional Spot & MCX Ticker Strip (HB Jodhpur / Starline Style) */}
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#111520] px-3 py-2 text-[11px] shadow-sm">
+        <div className="flex shrink-0 items-center gap-1.5 pr-2 border-r border-zinc-200 dark:border-white/10">
+          <span
+            className={`h-2 w-2 rounded-full ${
+              streamStatus === 'LIVE' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+            }`}
+          />
+          <span className="font-bold tracking-wider uppercase text-zinc-900 dark:text-[#E6CB94]">
+            {streamStatus === 'LIVE' ? '24H LIVE' : streamStatus}
           </span>
         </div>
 
-        <div className="mt-4 flex items-center justify-between border-t border-[#111111]/15 pt-2.5 text-[10px] font-semibold text-[#111111]/75">
-          <span>Jodhpur Bullion Ask / Sell</span>
-          <span>{lastUpdatedText} IST</span>
-        </div>
-      </motion.div>
-
-      {/* 2. Behance 2-Column Quick-Action Tiles */}
-      <div className="grid grid-cols-2 gap-3">
-        <motion.button
-          type="button"
-          whileTap={{ scale: 0.97 }}
-          onClick={onOpenCalculator}
-          className="flex flex-col justify-between rounded-2xl border border-zinc-200 dark:border-[#C5A358]/25 bg-white dark:bg-[#161616] p-4 text-left shadow-sm"
-        >
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8C97A]/15 text-[#8C6A2E] dark:text-[#E8C97A]">
-            <Calculator className="h-4 w-4" />
+        {spot.xauUsd && (
+          <div className="shrink-0 pr-2.5 border-r border-zinc-200 dark:border-white/10 tabular-nums">
+            <span className="text-zinc-500">XAU/USD </span>
+            <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
+              ${spot.xauUsd.toFixed(2)}
+            </span>
           </div>
-          <div className="mt-3">
-            <div className="text-xs font-bold text-zinc-900 dark:text-[#EDEDED]">
-              Showroom Calculator
-            </div>
-            <div className="mt-0.5 text-[10px] text-zinc-500">
-              Weight × Live Ask + 3% GST
-            </div>
+        )}
+        {spot.xagUsd && (
+          <div className="shrink-0 pr-2.5 border-r border-zinc-200 dark:border-white/10 tabular-nums">
+            <span className="text-zinc-500">XAG/USD </span>
+            <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
+              ${spot.xagUsd.toFixed(2)}
+            </span>
           </div>
-        </motion.button>
-
-        <div className="flex flex-col justify-between rounded-2xl border border-zinc-200 dark:border-[#C5A358]/25 bg-white dark:bg-[#161616] p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-              <TrendingUp className="h-4 w-4" />
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={onToggleAudio}
-                aria-label="Toggle tick sound"
-                className="rounded-full p-1.5 text-zinc-400 hover:text-[#E8C97A]"
-              >
-                {tickAudio ? <Volume2 className="h-3.5 w-3.5 text-[#E8C97A]" /> : <VolumeX className="h-3.5 w-3.5" />}
-              </button>
-              <button
-                type="button"
-                onClick={onManualRefresh}
-                aria-label="Refresh rates"
-                className="rounded-full p-1.5 text-zinc-400 hover:text-[#E8C97A]"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin text-[#E8C97A]' : ''}`} />
-              </button>
-            </div>
+        )}
+        {spot.usdInr && (
+          <div className="shrink-0 pr-2.5 border-r border-zinc-200 dark:border-white/10 tabular-nums">
+            <span className="text-zinc-500">USD/INR </span>
+            <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
+              ₹{spot.usdInr.toFixed(2)}
+            </span>
           </div>
-          <div className="mt-3">
-            <div className="text-xs font-bold text-zinc-900 dark:text-[#EDEDED]">
-              Jodhpur vs IBJA
-            </div>
-            <div className="mt-0.5 font-mono tabular-nums text-xs font-bold text-[#8C6A2E] dark:text-[#E8C97A]">
-              {formatDiff(spreadDiff)}
-            </div>
+        )}
+        {spot.mcxGold && (
+          <div className="shrink-0 pr-2.5 border-r border-zinc-200 dark:border-white/10 tabular-nums">
+            <span className="text-zinc-500">MCX G </span>
+            <span className="font-mono font-bold text-[#9A7422] dark:text-[#D4AF37]">
+              {formatINR(spot.mcxGold)}
+            </span>
           </div>
-        </div>
+        )}
+        {spot.mcxSilver && (
+          <div className="shrink-0 tabular-nums">
+            <span className="text-zinc-500">MCX S </span>
+            <span className="font-mono font-bold text-[#9A7422] dark:text-[#D4AF37]">
+              {formatINR(spot.mcxSilver)}
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* 3. Clean 3-Terminal Switcher */}
-      <div className="grid grid-cols-3 gap-1.5 rounded-full border border-zinc-200 dark:border-[#C5A358]/25 bg-white dark:bg-[#141414] p-1">
+      {/* 2. Terminal Switcher */}
+      <div className="grid grid-cols-3 gap-1 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#111520] p-1 shadow-sm">
         {TERMINAL_TABS.map((tab) => {
           const active = currentTerm === tab.id;
           return (
@@ -165,15 +120,15 @@ export default function LiveRatesTab({
               key={tab.id}
               type="button"
               onClick={() => onSelectTerminal(tab.id)}
-              className={`relative z-10 rounded-full py-2 text-[11px] font-bold transition-colors ${
-                active ? 'text-[#111111]' : 'text-zinc-500 dark:text-zinc-400'
+              className={`relative z-10 rounded-lg py-2 text-[11px] font-bold tracking-wide transition-colors ${
+                active ? 'text-[#090B10]' : 'text-zinc-500 dark:text-zinc-400'
               }`}
             >
               {active && (
                 <motion.span
-                  layoutId="behance-term-pill"
+                  layoutId="desk-term-pill"
                   transition={{ type: 'spring', stiffness: 450, damping: 32 }}
-                  className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-[#E8C97A] to-[#C9A452]"
+                  className="absolute inset-0 -z-10 rounded-lg bg-[#D4AF37]"
                 />
               )}
               {tab.label.replace(' Rates', '')}
@@ -182,83 +137,177 @@ export default function LiveRatesTab({
         })}
       </div>
 
-      {/* 4. Focused Single-Terminal Airy Rate Rows (Ask / Sell Big Hero Font) */}
+      {/* 3. Metal Category Filter + Audio/Refresh/Calc Controls */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          {[
+            { id: 'ALL', label: `All (${rawList.length})` },
+            { id: 'gold', label: 'Gold' },
+            { id: 'silver', label: 'Silver' },
+          ].map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setMetalFilter(f.id)}
+              className={`rounded-lg px-3 py-1.5 text-[11px] font-bold transition ${
+                metalFilter === f.id
+                  ? 'bg-[#D4AF37]/20 text-[#9A7422] dark:text-[#E6CB94] border border-[#D4AF37]/40'
+                  : 'border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#111520] text-zinc-500'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => onOpenCalculator({ terminal: currentTerm, metalKey: 'gold995' })}
+            className="flex items-center gap-1 rounded-lg border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#111520] px-2.5 py-1.5 text-[11px] font-bold text-[#9A7422] dark:text-[#E6CB94]"
+          >
+            <Calculator className="h-3.5 w-3.5" />
+            Calc
+          </button>
+          <button
+            type="button"
+            onClick={onToggleAudio}
+            aria-label="Toggle tick sound"
+            className={`rounded-lg border p-1.5 ${
+              tickAudio
+                ? 'border-[#D4AF37]/50 bg-[#D4AF37]/15 text-[#D4AF37]'
+                : 'border-zinc-200 dark:border-white/10 bg-white dark:bg-[#111520] text-zinc-500'
+            }`}
+          >
+            {tickAudio ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+          </button>
+          <button
+            type="button"
+            onClick={onManualRefresh}
+            aria-label="Refresh rates"
+            className="rounded-lg border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#111520] p-1.5 text-zinc-500 dark:text-zinc-300"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin text-[#D4AF37]' : ''}`} />
+          </button>
+        </div>
+      </div>
+
+      {/* 4. Institutional Market Rate Table (ALL Live Rates) */}
       <AnimatePresence mode="wait">
         <motion.div
-          key={currentTerm}
-          initial={{ opacity: 0, y: 8 }}
+          key={`${currentTerm}_${metalFilter}`}
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="space-y-2.5"
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.18 }}
+          className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#111520] shadow-sm"
         >
-          <div className="flex items-center justify-between px-1">
+          {/* Table Header */}
+          <div className="flex items-center justify-between border-b border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#181D2B] px-3.5 py-2.5">
             <div>
-              <h3 className="text-xs font-bold tracking-[0.14em] text-[#8C6A2E] dark:text-[#E8C97A] uppercase">
+              <div className="flex items-center gap-1.5 text-xs font-bold tracking-wide text-zinc-900 dark:text-[#E6CB94] uppercase">
+                <Radio className="h-3 w-3 text-emerald-500" />
                 {termMeta.label}
-              </h3>
-              <p className="text-[10px] text-zinc-500">{termMeta.subtitle}</p>
+              </div>
+              <div className="text-[10px] text-zinc-500">{termMeta.subtitle} • {lastUpdatedText} IST</div>
             </div>
-            <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-              {streamStatus === 'LIVE' ? 'LIVE 24H' : streamStatus}
-            </span>
+            <div className="flex items-center gap-5 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+              <span>Bid / Buy</span>
+              <span className="text-[#9A7422] dark:text-[#D4AF37]">Ask / Sell</span>
+            </div>
           </div>
 
-          {ARBITRAGE_PRODUCTS.map((prod, idx) => {
-            const item = items[prod.key] || {};
-            const tickDir = ticks?.[`${currentTerm}_${prod.key}`];
-            const flashClass =
-              tickDir === 'up'
-                ? 'animate-tick-up'
-                : tickDir === 'down'
-                ? 'animate-tick-down'
-                : '';
+          {/* All Rate Rows */}
+          <div className="divide-y divide-zinc-100 dark:divide-white/5">
+            {filteredList.length === 0 ? (
+              <div className="py-10 text-center text-xs text-zinc-500">
+                Connecting to {termMeta.label}...
+              </div>
+            ) : (
+              filteredList.map((item) => {
+                const tickDir = ticks?.[`${currentTerm}_${item.key}`];
+                const flashClass =
+                  tickDir === 'up'
+                    ? 'animate-tick-up'
+                    : tickDir === 'down'
+                    ? 'animate-tick-down'
+                    : '';
+                const askVal = item.ask || item.bid;
 
-            const askVal = item.ask || item.bid;
+                return (
+                  <div
+                    key={item.key}
+                    onClick={() => onOpenCalculator({ terminal: currentTerm, metalKey: item.key, customAsk: askVal, label: item.name, unit: item.unit })}
+                    className={`flex items-center justify-between px-3.5 py-3 transition active:bg-zinc-100 dark:active:bg-white/5 cursor-pointer ${flashClass}`}
+                  >
+                    {/* Left: Product Name, Purity/RTGS/Cash Tag & High/Low */}
+                    <div className="min-w-0 flex-1 pr-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="truncate text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                          {item.name}
+                        </span>
+                      </div>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[10px] text-zinc-500">
+                        <span className="rounded bg-zinc-100 dark:bg-white/5 px-1.5 py-0.5 font-semibold text-[#9A7422] dark:text-[#D4AF37]">
+                          {item.tag}
+                        </span>
+                        <span>({item.unit})</span>
+                        {item.high && <span className="tabular-nums">H:{formatINR(item.high)}</span>}
+                        {item.low && <span className="tabular-nums">L:{formatINR(item.low)}</span>}
+                      </div>
+                    </div>
 
-            return (
-              <motion.div
-                key={prod.key}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, delay: idx * 0.04 }}
-                className={`flex items-center justify-between rounded-2xl border border-zinc-200 dark:border-[#C5A358]/20 bg-white dark:bg-[#161616] px-4 py-3.5 shadow-sm transition ${flashClass}`}
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-zinc-900 dark:text-[#EDEDED]">
-                      {prod.label}
-                    </span>
-                    <span className="rounded-full bg-zinc-100 dark:bg-white/5 px-2 py-0.5 text-[10px] text-zinc-500">
-                      {prod.unit}
-                    </span>
-                  </div>
-                  <div className="mt-1 flex items-center gap-3 text-[11px] text-zinc-500 dark:text-zinc-400 tabular-nums">
-                    <span>Bid: {formatINR(item.bid)}</span>
-                    {item.high && <span>H: {formatINR(item.high)}</span>}
-                    {item.low && <span>L: {formatINR(item.low)}</span>}
-                  </div>
-                </div>
+                    {/* Right: Secondary Bid + Primary Big Hero Ask + Alert Bell */}
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="text-right">
+                        <div className="font-mono tabular-nums text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                          {formatINR(item.bid)}
+                        </div>
+                        <div className="text-[9px] uppercase text-zinc-400">Bid</div>
+                      </div>
 
-                <div className="text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    {tickDir === 'up' && (
-                      <ArrowUpRight className="h-4 w-4 text-emerald-500" />
-                    )}
-                    {tickDir === 'down' && (
-                      <ArrowDownRight className="h-4 w-4 text-red-500" />
-                    )}
-                    <span className="font-mono tabular-nums text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-[#E8C97A]">
-                      {formatINR(askVal)}
-                    </span>
+                      <div className="text-right min-w-[96px]">
+                        <div className="flex items-center justify-end gap-0.5">
+                          {tickDir === 'up' && (
+                            <ArrowUpRight className="h-3.5 w-3.5 text-emerald-500" />
+                          )}
+                          {tickDir === 'down' && (
+                            <ArrowDownRight className="h-3.5 w-3.5 text-red-500" />
+                          )}
+                          <span
+                            className={`font-mono tabular-nums text-lg sm:text-xl font-extrabold tracking-tight ${
+                              tickDir === 'up'
+                                ? 'text-emerald-500'
+                                : tickDir === 'down'
+                                ? 'text-red-500'
+                                : 'text-zinc-900 dark:text-[#E6CB94]'
+                            }`}
+                          >
+                            {formatINR(askVal)}
+                          </span>
+                        </div>
+                        <div className="text-[9px] font-semibold uppercase text-[#9A7422] dark:text-[#D4AF37]/80">
+                          Ask / Sell
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        aria-label={`Set alert for ${item.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenAlertFor({ terminal: currentTerm, metalKey: item.key, currentAsk: askVal });
+                        }}
+                        className="rounded-lg p-1.5 text-zinc-400 hover:bg-[#D4AF37]/15 hover:text-[#D4AF37]"
+                      >
+                        <Bell className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="text-[9px] font-semibold uppercase tracking-wider text-zinc-400">
-                    Ask / Sell
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
+                );
+              })
+            )}
+          </div>
         </motion.div>
       </AnimatePresence>
     </div>

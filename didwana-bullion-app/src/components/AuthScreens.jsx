@@ -6,13 +6,18 @@ import {
   CheckCircle2,
   ArrowLeft,
   ArrowRight,
+  Lock,
+  Mail,
+  Phone,
   ShieldCheck,
+  User,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { APP_INFO } from '../config/constants';
 import { authApi } from '../services/api';
 import { authStorage, consentStorage } from '../services/storage';
 import { GoldCrest } from './SplashGate';
+import { ShimmerButton } from './ui/ShimmerButton';
 
 function evaluatePassword(password) {
   const checks = {
@@ -184,226 +189,240 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#0A0A0A] to-[#121212] px-6 py-10 flex flex-col justify-center safe-top safe-bottom">
-      {/* Faint Concentric Gold Watermark */}
-      <svg
+    <div className="relative min-h-screen overflow-hidden bg-[#090B10] px-5 py-8 flex flex-col justify-center safe-top safe-bottom">
+      {/* Subtle Ambient Gold Glow */}
+      <div
         aria-hidden="true"
-        viewBox="0 0 400 400"
-        className="pointer-events-none absolute -top-24 left-1/2 h-[390px] w-[390px] -translate-x-1/2 opacity-10"
-      >
-        {[90, 130, 170].map((r) => (
-          <circle key={r} cx="200" cy="200" r={r} fill="none" stroke="#C5A358" strokeWidth="1" />
-        ))}
-      </svg>
+        className="pointer-events-none absolute -top-24 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full opacity-25"
+        style={{
+          background: 'radial-gradient(circle, rgba(212,175,55,0.28) 0%, rgba(9,11,16,0) 70%)',
+        }}
+      />
 
       <div className="relative z-10 mx-auto w-full max-w-md">
-        {/* Clean Editorial Header */}
-        <div className="mb-7 flex flex-col items-center text-center">
-          <GoldCrest size={62} />
-          <h1 className="mt-4 text-2xl font-bold tracking-[0.14em] text-[#E8C97A] uppercase">
-            {mode === 'signin' ? 'Login' : mode === 'signup' ? 'Register Now' : 'Reset Password'}
+        {/* Institutional Header */}
+        <div className="mb-6 flex flex-col items-center text-center">
+          <GoldCrest size={58} />
+          <h1 className="mt-3.5 text-xl font-bold tracking-[0.16em] text-[#E6CB94] uppercase">
+            {mode === 'signin'
+              ? 'Terminal Sign In'
+              : mode === 'signup'
+              ? 'Create Account'
+              : 'Reset Password'}
           </h1>
-          <p className="mt-1 text-[11px] tracking-[0.22em] text-[#C5A358]/75 uppercase">
+          <p className="mt-1 text-[11px] tracking-[0.2em] text-zinc-400 uppercase">
             {APP_INFO.name} • {APP_INFO.tagline}
           </p>
         </div>
 
-        {/* Pure Behance Floating Warm Champagne-Gold Card */}
+        {/* Sleek Dark Glassmorphic Card (No Cheap Yellow Block) */}
         <AnimatePresence mode="wait">
           <motion.div
             key={mode}
-            initial={{ opacity: 0, y: 14 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-            className="rounded-3xl bg-gradient-to-br from-[#E8C97A] via-[#DDB965] to-[#C9A452] p-7 text-[#111111] shadow-[0_24px_60px_-14px_rgba(232,201,122,0.35)]"
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-2xl border border-[#D4AF37]/20 bg-[#111520]/95 p-6 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.85)]"
           >
             {mode === 'forgot' && (
               <button
                 type="button"
                 onClick={() => switchMode('signin')}
-                className="mb-4 flex items-center gap-1.5 text-xs font-bold text-[#111111]"
+                className="mb-4 flex items-center gap-1.5 text-xs font-semibold text-[#D4AF37]"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
-                Back to Login
+                Back to Sign In
               </button>
             )}
 
             {error && (
-              <div className="mb-4 flex items-start gap-2 rounded-xl bg-[#111111] p-3 text-xs text-red-300">
+              <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
                 <span>{error}</span>
               </div>
             )}
 
             {successMsg && (
-              <div className="mb-4 flex items-start gap-2 rounded-xl bg-[#111111] p-3 text-xs text-emerald-300">
+              <div className="mb-4 flex items-start gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-300">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                 <span>{successMsg}</span>
               </div>
             )}
 
             {mode === 'signin' && (
-              <form onSubmit={handleSignIn} className="space-y-6">
+              <form onSubmit={handleSignIn} className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-[0.18em] text-[#111111]/70">
+                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
                     Email or Mobile Number
                   </label>
-                  <input
-                    type="text"
-                    value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="Enter email or +91 mobile"
-                    autoComplete="username"
-                    className="mt-1.5 w-full border-b border-[#111111]/30 bg-transparent py-2 text-sm font-semibold text-[#111111] placeholder-[#111111]/45 focus:border-[#111111] focus:outline-none"
-                  />
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
+                    <input
+                      type="text"
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
+                      placeholder="you@example.com or 9521014851"
+                      autoComplete="username"
+                      className="w-full rounded-xl border border-white/10 bg-[#090B10] py-2.5 pl-10 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-[0.18em] text-[#111111]/70">
+                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
                     Password
                   </label>
-                  <div className="relative flex items-center">
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
                       autoComplete="current-password"
-                      className="mt-1.5 w-full border-b border-[#111111]/30 bg-transparent py-2 pr-9 text-sm font-semibold text-[#111111] placeholder-[#111111]/45 focus:border-[#111111] focus:outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-[#090B10] py-2.5 pl-10 pr-10 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label="Toggle password visibility"
-                      className="absolute right-1 top-3 text-[#111111]/70"
+                      className="absolute right-3 top-2.5 text-zinc-400 hover:text-zinc-200"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-xs font-semibold text-[#111111]/80">
+                <div className="flex items-center justify-between text-xs text-zinc-400">
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#111111]"
+                      className="h-4 w-4 rounded border-white/20 bg-[#090B10] accent-[#D4AF37]"
                     />
                     Remember Me
                   </label>
                   <button
                     type="button"
                     onClick={() => switchMode('forgot')}
-                    className="underline"
+                    className="font-medium text-[#D4AF37] hover:underline"
                   >
                     Forgot Password?
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
+                <ShimmerButton type="submit" disabled={loading} className="w-full py-3.5">
+                  <span>
+                    {loading
+                      ? slowWakeMsg
+                        ? 'Waking Secure Server...'
+                        : 'Signing In...'
+                      : 'Sign In to Live Terminals'}
+                  </span>
+                  <ArrowRight className="h-4 w-4" />
+                </ShimmerButton>
+
+                <div className="pt-1 text-center text-xs text-zinc-400">
+                  New to Didwana Bullion?{' '}
                   <button
                     type="button"
                     onClick={() => switchMode('signup')}
-                    className="text-xs font-bold text-[#111111] underline"
+                    className="font-bold text-[#E6CB94] hover:underline"
                   >
-                    Don&apos;t have an account? Register
+                    Create Account
                   </button>
-
-                  <motion.button
-                    type="submit"
-                    disabled={loading}
-                    whileTap={{ scale: 0.94 }}
-                    className="flex h-11 items-center gap-2 rounded-full bg-[#111111] px-5 text-xs font-bold tracking-wider text-[#E8C97A] uppercase shadow-lg disabled:opacity-50"
-                  >
-                    <span>
-                      {loading ? (slowWakeMsg ? 'Waking...' : 'Signing In') : 'Proceed'}
-                    </span>
-                    <ArrowRight className="h-4 w-4" />
-                  </motion.button>
                 </div>
               </form>
             )}
 
             {mode === 'signup' && (
-              <form onSubmit={handleSignUp} className="space-y-4">
+              <form onSubmit={handleSignUp} className="space-y-3.5">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-[0.18em] text-[#111111]/70">
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
                     Full Name
                   </label>
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Enter your full name"
-                    className="mt-1 w-full border-b border-[#111111]/30 bg-transparent py-1.5 text-sm font-semibold text-[#111111] placeholder-[#111111]/45 focus:border-[#111111] focus:outline-none"
-                  />
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
+                    <input
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Your full name"
+                      className="w-full rounded-xl border border-white/10 bg-[#090B10] py-2.5 pl-10 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-[0.18em] text-[#111111]/70">
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
                     Email Address
                   </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@example.com"
-                    className="mt-1 w-full border-b border-[#111111]/30 bg-transparent py-1.5 text-sm font-semibold text-[#111111] placeholder-[#111111]/45 focus:border-[#111111] focus:outline-none"
-                  />
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@example.com"
+                      className="w-full rounded-xl border border-white/10 bg-[#090B10] py-2.5 pl-10 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-[0.18em] text-[#111111]/70">
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
                     Mobile Number (+91)
                   </label>
-                  <div className="flex items-center border-b border-[#111111]/30 focus-within:border-[#111111]">
-                    <span className="pr-2 text-xs font-bold text-[#111111]/70">+91</span>
+                  <div className="relative flex items-center">
+                    <Phone className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
+                    <span className="absolute left-10 text-xs font-semibold text-zinc-400">+91</span>
                     <input
                       type="tel"
                       maxLength={10}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                       placeholder="9521014851"
-                      className="w-full bg-transparent py-1.5 text-sm font-semibold text-[#111111] placeholder-[#111111]/45 focus:outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-[#090B10] py-2.5 pl-18 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-[0.18em] text-[#111111]/70">
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
                     Password
                   </label>
-                  <div className="relative flex items-center">
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Min 8 chars, A-Z, a-z, 0-9, !@#$"
-                      className="mt-1 w-full border-b border-[#111111]/30 bg-transparent py-1.5 pr-8 text-sm font-semibold text-[#111111] placeholder-[#111111]/45 focus:border-[#111111] focus:outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-[#090B10] py-2.5 pl-10 pr-10 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-1 top-2 text-[#111111]/70"
+                      className="absolute right-3 top-2.5 text-zinc-400"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
 
                   {password.length > 0 && (
-                    <div className="mt-2 rounded-xl bg-[#111111]/90 p-2.5 text-[10px] text-zinc-300">
-                      <div className="mb-1 flex justify-between font-bold">
-                        <span>Strength</span>
-                        <span className="text-[#E8C97A]">{strength.label}</span>
+                    <div className="mt-2 space-y-1">
+                      <div className="flex justify-between text-[10px]">
+                        <span className="text-zinc-400">Password strength</span>
+                        <span className="font-bold text-[#E6CB94]">{strength.label}</span>
                       </div>
                       <div className="grid grid-cols-5 gap-1">
                         {[1, 2, 3, 4, 5].map((i) => (
                           <div
                             key={i}
                             className={`h-1 rounded-full ${
-                              strength.score >= i ? 'bg-[#E8C97A]' : 'bg-zinc-700'
+                              strength.score >= i ? 'bg-[#D4AF37]' : 'bg-zinc-800'
                             }`}
                           />
                         ))}
@@ -413,77 +432,79 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-[0.18em] text-[#111111]/70">
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
                     Confirm Password
                   </label>
-                  <div className="relative flex items-center">
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
                     <input
                       type={showConfirm ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Re-enter password"
-                      className="mt-1 w-full border-b border-[#111111]/30 bg-transparent py-1.5 pr-8 text-sm font-semibold text-[#111111] placeholder-[#111111]/45 focus:border-[#111111] focus:outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-[#090B10] py-2.5 pl-10 pr-10 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute right-1 top-2 text-[#111111]/70"
+                      className="absolute right-3 top-2.5 text-zinc-400"
                     >
                       {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
 
-                <label className="flex items-start gap-2 pt-1 text-[11px] leading-snug text-[#111111]/85">
+                <label className="flex items-start gap-2.5 pt-1 text-xs leading-relaxed text-zinc-400">
                   <input
                     type="checkbox"
                     checked={acceptedLegal}
                     onChange={(e) => setAcceptedLegal(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 shrink-0 rounded accent-[#111111]"
+                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-[#090B10] accent-[#D4AF37]"
                   />
                   <span>
                     I accept{' '}
-                    <button type="button" onClick={() => onOpenDoc('terms')} className="font-bold underline">
+                    <button type="button" onClick={() => onOpenDoc('terms')} className="text-[#E6CB94] underline">
                       Terms
                     </button>
                     ,{' '}
-                    <button type="button" onClick={() => onOpenDoc('privacy')} className="font-bold underline">
+                    <button type="button" onClick={() => onOpenDoc('privacy')} className="text-[#E6CB94] underline">
                       Privacy
                     </button>{' '}
                     &amp;{' '}
-                    <button type="button" onClick={() => onOpenDoc('cookies')} className="font-bold underline">
+                    <button type="button" onClick={() => onOpenDoc('cookies')} className="text-[#E6CB94] underline">
                       Cookies
                     </button>
                     .
                   </span>
                 </label>
 
-                <div className="flex items-center justify-between pt-2">
+                <ShimmerButton type="submit" disabled={loading} className="w-full py-3.5">
+                  <span>
+                    {loading
+                      ? slowWakeMsg
+                        ? 'Waking Secure Server...'
+                        : 'Creating Account...'
+                      : 'Create Secure Account'}
+                  </span>
+                  <ArrowRight className="h-4 w-4" />
+                </ShimmerButton>
+
+                <div className="pt-1 text-center text-xs text-zinc-400">
+                  Already have an account?{' '}
                   <button
                     type="button"
                     onClick={() => switchMode('signin')}
-                    className="text-xs font-bold underline"
+                    className="font-bold text-[#E6CB94] hover:underline"
                   >
-                    Already registered? Login
+                    Sign In
                   </button>
-                  <motion.button
-                    type="submit"
-                    disabled={loading}
-                    whileTap={{ scale: 0.94 }}
-                    className="flex h-11 items-center gap-2 rounded-full bg-[#111111] px-5 text-xs font-bold tracking-wider text-[#E8C97A] uppercase shadow-lg disabled:opacity-50"
-                  >
-                    <span>
-                      {loading ? (slowWakeMsg ? 'Waking...' : 'Creating') : 'Next'}
-                    </span>
-                    <ArrowRight className="h-4 w-4" />
-                  </motion.button>
                 </div>
               </form>
             )}
 
             {mode === 'forgot' && (
               <form onSubmit={handleForgot} className="space-y-4">
-                <p className="text-xs font-medium text-[#111111]/80">
+                <p className="text-xs text-zinc-400">
                   Enter your registered email address to request a password reset.
                 </p>
                 <input
@@ -491,22 +512,18 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full border-b border-[#111111]/35 bg-transparent py-2 text-sm font-semibold text-[#111111] placeholder-[#111111]/45 focus:border-[#111111] focus:outline-none"
+                  className="w-full rounded-xl border border-white/10 bg-[#090B10] px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
                 />
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full rounded-full bg-[#111111] py-3 text-xs font-bold tracking-wider text-[#E8C97A] uppercase disabled:opacity-50"
-                >
+                <ShimmerButton type="submit" disabled={loading} className="w-full py-3">
                   {loading ? 'Sending...' : 'Send Reset Link'}
-                </button>
+                </ShimmerButton>
               </form>
             )}
           </motion.div>
         </AnimatePresence>
 
-        <div className="mt-6 flex items-center justify-center gap-1.5 text-[11px] text-zinc-500">
-          <ShieldCheck className="h-3.5 w-3.5 text-[#C5A358]" />
+        <div className="mt-5 flex items-center justify-center gap-1.5 text-[11px] text-zinc-500">
+          <ShieldCheck className="h-3.5 w-3.5 text-[#D4AF37]" />
           <span>TLS Encrypted • {APP_INFO.address}</span>
         </div>
       </div>

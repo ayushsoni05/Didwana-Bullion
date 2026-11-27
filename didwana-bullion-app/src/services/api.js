@@ -344,135 +344,383 @@ export function normalizeBullionPayload(raw) {
   const data = raw.payload || raw.data || raw.rates || raw;
   const now = data.updatedAt || data.lastUpdated || data.timestamp || raw.timestamp || new Date().toISOString();
 
-  // 1. HB Jodhpur (himanshuBullion)
+  // 1. HB Jodhpur (himanshuBullion) — ALL Gold & Silver rates
   const hb = data.himanshuBullion || data.hb || data.HB || {};
   const hbProds = hb.products || [];
-  const hbGold995 = findProduct(hbProds, (n) => n.includes('995'));
+  const hbGold995 = findProduct(hbProds, (n) => n.includes('995') && !n.includes('tds'));
+  const hbTdsGold = findProduct(hbProds, (n) => n.includes('tds') && n.includes('995') && !n.includes('100gm'));
   const hbSilverPeti = findProduct(hbProds, (n) => n.includes('peti') || n.includes('999.9'));
-  const hbSilverChorsa = findProduct(hbProds, (n) => n.includes('chorsa'));
+  const hbSilverChorsa = findProduct(hbProds, (n) => n.includes('chorsa') && !n.includes('tds'));
+
+  const hbList = [
+    {
+      key: 'gold995',
+      name: 'Gold 995 Ready',
+      tag: '3% GST • JDR',
+      metal: 'gold',
+      unit: '10g',
+      bid: pickNum(hbGold995?.bid, data.sellRates?.gold_995, hbGold995?.ask),
+      ask: pickNum(hbGold995?.ask, data.buyRates?.gold_995),
+      high: pickNum(hbGold995?.high, data.market?.highPrice),
+      low: pickNum(hbGold995?.low, data.market?.lowPrice),
+    },
+    {
+      key: 'gold995_tds',
+      name: 'TDS Gold 995 Imp',
+      tag: 'TDS • JDR',
+      metal: 'gold',
+      unit: '10g',
+      bid: pickNum(hbTdsGold?.bid, data.sellRates?.gold_995),
+      ask: pickNum(hbTdsGold?.ask, data.buyRates?.gold_995),
+      high: pickNum(hbTdsGold?.high),
+      low: pickNum(hbTdsGold?.low),
+    },
+    {
+      key: 'gold24k',
+      name: 'Gold 24K (999)',
+      tag: '24K • Pure',
+      metal: 'gold',
+      unit: '10g',
+      bid: pickNum(data.sellRates?.gold_24k_10g, data.gold_10g_24k),
+      ask: pickNum(data.buyRates?.gold_24k_10g, data.gold_10g_24k),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'gold916',
+      name: 'Gold 22K (916)',
+      tag: '22K • HUID',
+      metal: 'gold',
+      unit: '10g',
+      bid: pickNum(data.sellRates?.gold_22k_10g, data.gold_10g_22k),
+      ask: pickNum(data.buyRates?.gold_22k_10g, data.gold_10g_22k),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'gold20k',
+      name: 'Gold 20K (833)',
+      tag: '20K • HUID',
+      metal: 'gold',
+      unit: '10g',
+      bid: pickNum(data.sellRates?.gold_20k_10g, data.gold_10g_20k),
+      ask: pickNum(data.buyRates?.gold_20k_10g, data.gold_10g_20k),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'gold18k',
+      name: 'Gold 18K (750)',
+      tag: '18K • HUID',
+      metal: 'gold',
+      unit: '10g',
+      bid: pickNum(data.sellRates?.gold_18k_10g, data.gold_10g_18k),
+      ask: pickNum(data.buyRates?.gold_18k_10g, data.gold_10g_18k),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'gold14k',
+      name: 'Gold 14K (585)',
+      tag: '14K • HUID',
+      metal: 'gold',
+      unit: '10g',
+      bid: pickNum(data.sellRates?.gold_14k_10g, data.gold_10g_14k),
+      ask: pickNum(data.buyRates?.gold_14k_10g, data.gold_10g_14k),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'silverPeti',
+      name: 'Silver Bank Peti 999.9',
+      tag: '3% GST • 1KG',
+      metal: 'silver',
+      unit: '1KG',
+      bid: pickNum(hbSilverPeti?.bid, data.sellRates?.silver_1kg, hbSilverPeti?.ask),
+      ask: pickNum(hbSilverPeti?.ask, data.buyRates?.silver_1kg, data.silver_1kg),
+      high: pickNum(hbSilverPeti?.high),
+      low: pickNum(hbSilverPeti?.low),
+    },
+    {
+      key: 'silverChorsa',
+      name: 'Silver Chorsa 98.00',
+      tag: '3% GST • 1KG',
+      metal: 'silver',
+      unit: '1KG',
+      bid: pickNum(hbSilverChorsa?.bid, data.sellRates?.silver_chorsa_1kg, hbSilverChorsa?.ask),
+      ask: pickNum(hbSilverChorsa?.ask, data.buyRates?.silver_chorsa_1kg, data.silver_chorsa_1kg),
+      high: pickNum(hbSilverChorsa?.high),
+      low: pickNum(hbSilverChorsa?.low),
+    },
+    {
+      key: 'silver10g',
+      name: 'Silver Fine (10g)',
+      tag: 'Retail • 10g',
+      metal: 'silver',
+      unit: '10g',
+      bid: pickNum(data.sellRates?.silver_10g, data.silver_10g),
+      ask: pickNum(data.buyRates?.silver_10g, data.silver_10g),
+      high: null,
+      low: null,
+    },
+  ].filter((x) => x.ask || x.bid);
 
   const HB = {
     updatedAt: now,
     status: hb.isLive ? 'LIVE' : hb.marketState || 'LIVE',
-    items: {
-      gold995: {
-        name: 'Gold 995',
-        unit: '10g',
-        bid: pickNum(hbGold995?.bid, data.sellRates?.gold_995, hbGold995?.ask, data.buyRates?.gold_995),
-        ask: pickNum(hbGold995?.ask, data.buyRates?.gold_995, hbGold995?.bid),
-        high: pickNum(hbGold995?.high, data.market?.highPrice),
-        low: pickNum(hbGold995?.low, data.market?.lowPrice),
-      },
-      gold916: {
-        name: '22K 916',
-        unit: '10g',
-        bid: pickNum(data.sellRates?.gold_22k_10g, data.gold_10g_22k),
-        ask: pickNum(data.buyRates?.gold_22k_10g, data.gold_10g_22k),
-        high: null,
-        low: null,
-      },
-      silverPeti: {
-        name: 'Silver Peti',
-        unit: '1KG',
-        bid: pickNum(hbSilverPeti?.bid, data.sellRates?.silver_1kg, hbSilverPeti?.ask, data.silver_1kg),
-        ask: pickNum(hbSilverPeti?.ask, data.buyRates?.silver_1kg, data.silver_1kg),
-        high: pickNum(hbSilverPeti?.high),
-        low: pickNum(hbSilverPeti?.low),
-      },
-      silverChorsa: {
-        name: 'Silver Chorsa',
-        unit: '1KG',
-        bid: pickNum(hbSilverChorsa?.bid, data.sellRates?.silver_chorsa_1kg, hbSilverChorsa?.ask, data.silver_chorsa_1kg),
-        ask: pickNum(hbSilverChorsa?.ask, data.buyRates?.silver_chorsa_1kg, data.silver_chorsa_1kg),
-        high: pickNum(hbSilverChorsa?.high),
-        low: pickNum(hbSilverChorsa?.low),
-      },
-    },
+    list: hbList,
+    items: Object.fromEntries(hbList.map((i) => [i.key, i])),
   };
 
-  // 2. Mosun & Sons Sujangarh (mosunBullion)
+  // 2. Mosun & Sons Sujangarh (mosunBullion) — ALL Cash, RTGS, HUID & Silver rates
   const mosun = data.mosunBullion || data.mosun || data.MOSUN || {};
   const mr = mosun.rates || {};
+  const mosunList = [
+    {
+      key: 'gold995',
+      name: 'Gold 24K (99.50) Cash',
+      tag: 'LOCAL CASH',
+      metal: 'gold',
+      unit: '10g',
+      bid: pickNum(mr.gold_995_cash_bid, mr.gold_995_bid),
+      ask: pickNum(mr.gold_995_cash_ask, mr.gold_995_ask, mr.gold_995),
+      high: pickNum(mr.gold_995_high),
+      low: pickNum(mr.gold_995_low),
+    },
+    {
+      key: 'gold995_rtgs',
+      name: 'Gold 99.50 RTGS',
+      tag: 'RTGS • 3% GST',
+      metal: 'gold',
+      unit: '10g',
+      bid: pickNum(mr.gold_995_rtgs_bid),
+      ask: pickNum(mr.gold_995_rtgs_ask, mr.gold_995_rtgs),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'gold993_cash',
+      name: 'Gold 99.30 Cash',
+      tag: 'LOCAL CASH',
+      metal: 'gold',
+      unit: '10g',
+      bid: pickNum(mr.gold_993_cash_bid),
+      ask: pickNum(mr.gold_993_cash_ask, mr.gold_993_cash),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'gold993_rtgs',
+      name: 'Gold 99.30 RTGS',
+      tag: 'RTGS • 3% GST',
+      metal: 'gold',
+      unit: '10g',
+      bid: pickNum(mr.gold_993_rtgs_bid),
+      ask: pickNum(mr.gold_993_rtgs_ask, mr.gold_993_rtgs),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'gold916',
+      name: 'Gold 22K (916) HUID',
+      tag: '22K • HUID',
+      metal: 'gold',
+      unit: '10g',
+      bid: pickNum(mr.gold_22k_10g_bid),
+      ask: pickNum(mr.gold_22k_10g_ask, mr.gold_22k_10g, mr.gold_22k),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'gold20k',
+      name: 'Gold 20K (833) HUID',
+      tag: '20K • HUID',
+      metal: 'gold',
+      unit: '10g',
+      bid: pickNum(mr.gold_20k_10g_bid),
+      ask: pickNum(mr.gold_20k_10g_ask, mr.gold_20k_10g),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'gold18k',
+      name: 'Gold 18K (750) HUID',
+      tag: '18K • HUID',
+      metal: 'gold',
+      unit: '10g',
+      bid: pickNum(mr.gold_18k_10g_bid),
+      ask: pickNum(mr.gold_18k_10g_ask, mr.gold_18k_10g, mr.gold_18k),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'gold14k',
+      name: 'Gold 14K (585) HUID',
+      tag: '14K • HUID',
+      metal: 'gold',
+      unit: '10g',
+      bid: pickNum(mr.gold_14k_10g_bid),
+      ask: pickNum(mr.gold_14k_10g_ask, mr.gold_14k_10g),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'silverPeti',
+      name: 'Silver Bank 999 Cash',
+      tag: 'LOCAL CASH • 1KG',
+      metal: 'silver',
+      unit: '1KG',
+      bid: pickNum(mr.silver_bank_cash_bid, mr.silver_999_1kg_bid),
+      ask: pickNum(mr.silver_bank_cash_ask, mr.silver_bank_cash, mr.silver_peti),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'silverPeti_rtgs',
+      name: 'Silver Bank 999 RTGS',
+      tag: 'RTGS • 1KG',
+      metal: 'silver',
+      unit: '1KG',
+      bid: pickNum(mr.silver_bank_rtgs_bid),
+      ask: pickNum(mr.silver_bank_rtgs_ask, mr.silver_bank_rtgs),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'silverChorsa',
+      name: 'Silver Chorsa (98.00) Cash',
+      tag: 'LOCAL CASH • 1KG',
+      metal: 'silver',
+      unit: '1KG',
+      bid: pickNum(mr.silver_chorsa_bid),
+      ask: pickNum(mr.silver_chorsa_ask, mr.silver_chorsa),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'silverChorsa_rtgs',
+      name: 'Silver Chorsa RTGS',
+      tag: 'RTGS • 1KG',
+      metal: 'silver',
+      unit: '1KG',
+      bid: pickNum(mr.silver_chorsa_rtgs_bid),
+      ask: pickNum(mr.silver_chorsa_rtgs_ask, mr.silver_chorsa_rtgs),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'silverAuction',
+      name: 'Silver Auction Bank',
+      tag: 'AUCTION • 1KG',
+      metal: 'silver',
+      unit: '1KG',
+      bid: pickNum(mr.silver_auction_bank_bid),
+      ask: pickNum(mr.silver_auction_bank_ask, mr.silver_auction_bank),
+      high: null,
+      low: null,
+    },
+    {
+      key: 'silverJewellery',
+      name: 'Silver Jewellery',
+      tag: 'JEWELLERY • 1KG',
+      metal: 'silver',
+      unit: '1KG',
+      bid: pickNum(mr.silver_jewellery_bid),
+      ask: pickNum(mr.silver_jewellery_ask, mr.silver_jewellery),
+      high: null,
+      low: null,
+    },
+  ].filter((x) => x.ask || x.bid);
+
   const MOSUN = {
     updatedAt: now,
     status: mosun.isLive ? 'LIVE' : mosun.marketState || 'LIVE',
-    items: {
-      gold995: {
-        name: 'Gold 995',
-        unit: '10g',
-        bid: pickNum(mr.gold_995_bid, mr.gold_995),
-        ask: pickNum(mr.gold_995_ask, mr.gold_995),
-        high: pickNum(mr.gold_995_high),
-        low: pickNum(mr.gold_995_low),
-      },
-      gold916: {
-        name: '22K 916',
-        unit: '10g',
-        bid: pickNum(mr.gold_22k_10g_bid, mr.gold_22k_10g),
-        ask: pickNum(mr.gold_22k_10g_ask, mr.gold_22k),
-        high: null,
-        low: null,
-      },
-      silverPeti: {
-        name: 'Silver Peti',
-        unit: '1KG',
-        bid: pickNum(mr.silver_999_1kg_bid, mr.silver_peti, mr.silver_999_1kg),
-        ask: pickNum(mr.silver_999_1kg_ask, mr.silver_peti, mr.silver_999_1kg),
-        high: null,
-        low: null,
-      },
-      silverChorsa: {
-        name: 'Silver Chorsa',
-        unit: '1KG',
-        bid: pickNum(mr.silver_chorsa_bid, mr.silver_chorsa),
-        ask: pickNum(mr.silver_chorsa_ask, mr.silver_chorsa_1kg, mr.silver_chorsa),
-        high: null,
-        low: null,
-      },
-    },
+    list: mosunList,
+    items: Object.fromEntries(mosunList.map((i) => [i.key, i])),
   };
 
-  // 3. IBJA Official (payload.ibjaBullion or /api/prices/ibja-live)
+  // 3. IBJA Official — ALL Commodities
   const ibja = data.ibjaBullion || data.ibja || data.ibjaOfficial || data.IBJA || {};
   const ibjaSum = ibja.summary || data.summary || {};
+  const ibjaComm = Array.isArray(ibja.commodities) ? ibja.commodities : [];
+
+  const ibjaKeyMap = {
+    gold_999: 'gold24k',
+    gold_995: 'gold995',
+    gold_916: 'gold916',
+    gold_750: 'gold18k',
+    gold_585: 'gold14k',
+    silver_999: 'silverPeti',
+    platinum_999: 'platinum999',
+  };
+
+  let ibjaList = ibjaComm.map((c) => ({
+    key: ibjaKeyMap[c.id] || c.id,
+    name: c.name,
+    tag: c.fixingRate ? `Fixing ₹${Math.round(c.fixingRate).toLocaleString('en-IN')}` : c.purity,
+    metal: c.id.includes('silver') ? 'silver' : 'gold',
+    unit: c.unit || '10 GM',
+    bid: pickNum(c.rate),
+    ask: pickNum(c.rateGst, c.rate),
+    high: pickNum(c.fixingRateGst, c.fixingRate),
+    low: pickNum(c.prevRate),
+  }));
+
+  if (ibjaList.length === 0) {
+    ibjaList = [
+      {
+        key: 'gold24k',
+        name: 'Gold 999 (24K Pure)',
+        tag: 'OFFICIAL IBJA',
+        metal: 'gold',
+        unit: '10 GM',
+        bid: pickNum(ibjaSum.gold_999_10g, ibjaSum.official_gold_999_10g),
+        ask: pickNum(ibjaSum.gold_999_10g_gst, ibjaSum.official_gold_999_10g_gst, ibjaSum.gold_999_10g),
+      },
+      {
+        key: 'gold995',
+        name: 'Gold 995 (24K Bullion)',
+        tag: 'OFFICIAL IBJA',
+        metal: 'gold',
+        unit: '10 GM',
+        bid: pickNum(ibjaSum.gold_995_10g, ibjaSum.official_gold_995_10g),
+        ask: pickNum(ibjaSum.gold_995_10g_gst, ibjaSum.official_gold_995_10g_gst, ibjaSum.gold_995_10g),
+      },
+      {
+        key: 'gold916',
+        name: 'Gold 916 (22K BIS)',
+        tag: 'OFFICIAL IBJA',
+        metal: 'gold',
+        unit: '10 GM',
+        bid: pickNum(ibjaSum.gold_916_10g, ibjaSum.official_gold_916_10g),
+        ask: pickNum(ibjaSum.gold_916_10g_gst, ibjaSum.official_gold_916_10g_gst, ibjaSum.gold_916_10g),
+      },
+      {
+        key: 'silverPeti',
+        name: 'Silver 999 (1 KG)',
+        tag: 'OFFICIAL IBJA',
+        metal: 'silver',
+        unit: '1 KG',
+        bid: pickNum(ibjaSum.silver_999_1kg, ibjaSum.official_silver_999_1kg),
+        ask: pickNum(ibjaSum.silver_999_1kg_gst, ibjaSum.official_silver_999_1kg_gst, ibjaSum.silver_999_1kg),
+      },
+    ].filter((x) => x.ask || x.bid);
+  }
+
   const IBJA = {
     updatedAt: ibja.lastUpdated || now,
     status: ibja.status || 'ONLINE',
-    items: {
-      gold995: {
-        name: 'Gold 995',
-        unit: '10g',
-        bid: pickNum(ibjaSum.gold_995_10g, ibjaSum.official_gold_995_10g, ibja.gold_995),
-        ask: pickNum(ibjaSum.gold_995_10g_gst, ibjaSum.official_gold_995_10g_gst, ibjaSum.gold_995_10g),
-        high: null,
-        low: null,
-      },
-      gold916: {
-        name: '22K 916',
-        unit: '10g',
-        bid: pickNum(ibjaSum.gold_916_10g, ibjaSum.official_gold_916_10g, ibja.gold_916),
-        ask: pickNum(ibjaSum.gold_916_10g_gst, ibjaSum.official_gold_916_10g_gst, ibjaSum.gold_916_10g),
-        high: null,
-        low: null,
-      },
-      silverPeti: {
-        name: 'Silver 999',
-        unit: '1KG',
-        bid: pickNum(ibjaSum.silver_999_1kg, ibjaSum.official_silver_999_1kg, ibja.silver_999),
-        ask: pickNum(ibjaSum.silver_999_1kg_gst, ibjaSum.official_silver_999_1kg_gst, ibjaSum.silver_999_1kg),
-        high: null,
-        low: null,
-      },
-      silverChorsa: {
-        name: 'Gold 999',
-        unit: '10g',
-        bid: pickNum(ibjaSum.gold_999_10g, ibjaSum.official_gold_999_10g),
-        ask: pickNum(ibjaSum.gold_999_10g_gst, ibjaSum.official_gold_999_10g_gst),
-        high: null,
-        low: null,
-      },
-    },
+    list: ibjaList,
+    items: Object.fromEntries(ibjaList.map((i) => [i.key, i])),
   };
 
-  return { timestamp: now, HB, MOSUN, IBJA };
+  const spot = {
+    xauUsd: pickNum(mr.xau_usd),
+    xagUsd: pickNum(mr.xag_usd),
+    usdInr: pickNum(mr.usd_inr),
+    mcxGold: pickNum(mr.mcx_gold),
+    mcxSilver: pickNum(mr.mcx_silver),
+  };
+
+  return { timestamp: now, HB, MOSUN, IBJA, spot };
 }

@@ -37,8 +37,11 @@ export default function App() {
   const [showCookieModal, setShowCookieModal] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null);
   const [showCalculator, setShowCalculator] = useState(false);
+  const [calcPreset, setCalcPreset] = useState(null);
   const [showAlerts, setShowAlerts] = useState(false);
+  const [alertPreset, setAlertPreset] = useState(null);
   const [alerts, setAlerts] = useState([]);
+  const [triggeredBanner, setTriggeredBanner] = useState(null);
   const triggeredAlertsRef = useRef(new Set());
 
   const [rates, setRates] = useState(() => ratesCache.getLastRates());
@@ -270,6 +273,19 @@ export default function App() {
     setActiveTab('rates');
   };
 
+  // Create high-priority Android notification channel on startup
+  useEffect(() => {
+    LocalNotifications.createChannel({
+      id: 'bullion-alerts',
+      name: 'Didwana Bullion Price Alerts',
+      description: 'Real-time Gold & Silver target rate alerts',
+      importance: 5,
+      visibility: 1,
+      sound: 'default',
+      vibration: true,
+    }).catch(() => {});
+  }, []);
+
   // Load alerts when authenticated
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -279,7 +295,7 @@ export default function App() {
       .catch(() => {});
   }, [isAuthenticated]);
 
-  // Evaluate live price alerts
+  // Evaluate live price alerts (Android Notification + In-App Banner + Chime)
   useEffect(() => {
     if (!rates || !alerts.length) return;
     alerts.forEach((a) => {
@@ -293,15 +309,23 @@ export default function App() {
         (a.condition === 'ABOVE' && ask >= Number(a.target_ask));
       if (hit) {
         triggeredAlertsRef.current.add(a.id);
-        LocalNotifications.requestPermissions()
+        const termName =
+          a.terminal === 'HB' ? 'Jodhpur' : a.terminal === 'MOSUN' ? 'Sujangarh' : 'IBJA';
+        const msg = `${termName} ${a.metal_key} hit ₹${Math.round(ask).toLocaleString('en-IN')}`;
+        setTriggeredBanner(msg);
+        playTickSound('up');
+        setTimeout(() => setTriggeredBanner(null), 6000);
+
+        LocalNotifications.checkPermissions()
           .then((p) => {
             if (p.display === 'granted') {
               return LocalNotifications.schedule({
                 notifications: [
                   {
-                    title: `Didwana Bullion Alert: ${a.metal_key}`,
-                    body: `${a.terminal} reached ₹${Math.round(ask).toLocaleString('en-IN')}`,
+                    title: 'Didwana Bullion Price Alert',
+                    body: msg,
                     id: Math.floor(Math.random() * 100000),
+                    channelId: 'bullion-alerts',
                   },
                 ],
               });
@@ -393,6 +417,15 @@ export default function App() {
             </div>
           </header>
 
+          {triggeredBanner && (
+            <div className="mb-3 flex items-center justify-between rounded-xl border border-[#D4AF37]/50 bg-[#111520] px-3.5 py-2.5 text-xs font-semibold text-[#E6CB94] shadow-lg">
+              <span>🔔 {triggeredBanner}</span>
+              <button type="button" onClick={() => setTriggeredBanner(null)} className="text-zinc-400">
+                ✕
+              </button>
+            </div>
+          )}
+
           {activeTab === 'rates' && (
             <LiveRatesTab
               rates={rates}
@@ -405,9 +438,14 @@ export default function App() {
               onToggleAudio={() => handleUpdatePrefs({ tickAudio: !prefs.tickAudio })}
               onManualRefresh={fetchLatestOnce}
               refreshing={refreshing}
-              onOpenCalculator={() => setShowCalculator(true)}
-              onOpenAlerts={() => setShowAlerts(true)}
-              onShareRates={handleShareRates}
+              onOpenCalculator={(preset) => {
+                setCalcPreset(preset || null);
+                setShowCalculator(true);
+              }}
+              onOpenAlertFor={(preset) => {
+                setAlertPreset(preset || null);
+                setShowAlerts(true);
+              }}
             />
           )}
 
@@ -494,6 +532,7 @@ export default function App() {
         open={showCalculator}
         onClose={() => setShowCalculator(false)}
         rates={rates}
+        preset={calcPreset}
       />
 
       <PriceAlertsModal
@@ -503,6 +542,7 @@ export default function App() {
         onCreateAlert={handleCreateAlert}
         onDeleteAlert={handleDeleteAlert}
         rates={rates}
+        preset={alertPreset}
       />
     </div>
   );

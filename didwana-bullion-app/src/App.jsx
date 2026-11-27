@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Activity, Bell, LineChart, Moon, Sun, UserCircle2 } from 'lucide-react';
+import { Activity, Bell, LineChart, Moon, Share2, Sun, UserCircle2 } from 'lucide-react';
 import { App as CapApp } from '@capacitor/app';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Share } from '@capacitor/share';
@@ -10,7 +10,7 @@ import { APP_INFO } from './config/constants';
 import { alertsApi, authApi, normalizeBullionPayload, pricesApi } from './services/api';
 import { authStorage, consentStorage, ratesCache } from './services/storage';
 import { playTickSound } from './services/sound';
-import SplashGate, { GoldCrest } from './components/SplashGate';
+import SplashGate from './components/SplashGate';
 import AuthScreens from './components/AuthScreens';
 import LiveRatesTab from './components/LiveRatesTab';
 import { CalculatorModal, PriceAlertsModal } from './components/BullionModals';
@@ -350,43 +350,46 @@ export default function App() {
         />
       ) : (
         <div className="mx-auto max-w-lg px-4 pt-3 safe-top">
-          {/* App Header */}
-          <header className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <GoldCrest size={34} />
-              <div>
-                <h1 className="text-sm font-bold tracking-[0.14em] text-[#8C6A2E] dark:text-[#DFC18A] uppercase">
-                  {APP_INFO.name}
-                </h1>
-                <p className="text-[10px] tracking-wider text-zinc-500 uppercase">
-                  {APP_INFO.tagline}
-                </p>
-              </div>
+          {/* Minimalist 3-Part Behance Header */}
+          <header className="mb-5 flex items-center justify-between">
+            <button
+              type="button"
+              aria-label="Share Live Rates"
+              onClick={handleShareRates}
+              className="rounded-full border border-zinc-200 dark:border-[#C5A358]/35 bg-white dark:bg-[#161616] p-2.5 text-zinc-700 dark:text-[#E8C97A] shadow-sm"
+            >
+              <Share2 className="h-4 w-4" />
+            </button>
+
+            <div className="flex flex-col items-center text-center">
+              <h1 className="text-sm font-bold tracking-[0.16em] text-[#8C6A2E] dark:text-[#E8C97A] uppercase">
+                {APP_INFO.name}
+              </h1>
+              <p className="text-[9px] tracking-[0.2em] text-zinc-500 uppercase">
+                {APP_INFO.tagline}
+              </p>
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                aria-label="Price Alerts"
-                onClick={() => setShowAlerts(true)}
-                className="relative rounded-full border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#121216] p-2 text-zinc-700 dark:text-[#DFC18A] shadow-sm"
+                aria-label="Toggle Light/Dark Mode"
+                onClick={() => handleUpdatePrefs({ theme: resolvedDark ? 'light' : 'dark' })}
+                className="rounded-full border border-zinc-200 dark:border-[#C5A358]/35 bg-white dark:bg-[#161616] p-2.5 text-zinc-700 dark:text-[#E8C97A] shadow-sm"
               >
-                <Bell className="h-3.5 w-3.5" />
-                {alerts.length > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-red-500" />
-                )}
+                {resolvedDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </button>
               <button
                 type="button"
-                aria-label="Toggle Light/Dark Mode"
-                onClick={() => handleUpdatePrefs({ theme: resolvedDark ? 'light' : 'dark' })}
-                className="rounded-full border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#121216] p-2 text-zinc-700 dark:text-[#DFC18A] shadow-sm"
+                aria-label="Price Alerts"
+                onClick={() => setShowAlerts(true)}
+                className="relative rounded-full border border-zinc-200 dark:border-[#C5A358]/35 bg-white dark:bg-[#161616] p-2.5 text-zinc-700 dark:text-[#E8C97A] shadow-sm"
               >
-                {resolvedDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+                <Bell className="h-4 w-4" />
+                {alerts.length > 0 && (
+                  <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
+                )}
               </button>
-              <span className="rounded-full border border-[#C8A96E]/40 bg-[#C8A96E]/10 px-2.5 py-1 text-[10px] font-bold text-[#8C6A2E] dark:text-[#DFC18A]">
-                24H LIVE
-              </span>
             </div>
           </header>
 

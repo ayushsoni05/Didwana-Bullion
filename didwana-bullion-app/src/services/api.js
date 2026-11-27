@@ -74,6 +74,10 @@ async function request(path, options = {}, baseUrl = API_BASE_URL) {
 }
 
 export const authApi = {
+  warmUp() {
+    return request('/health', { method: 'GET', timeout: 45000 }, AUTH_BASE_URL).catch(() => null);
+  },
+
   async login({ identifier, password }) {
     const clean = identifier.trim();
     const isEmail = clean.includes('@');
@@ -84,6 +88,7 @@ export const authApi = {
     return request('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify(payload),
+      timeout: 45000,
     }, AUTH_BASE_URL);
   },
 
@@ -98,6 +103,7 @@ export const authApi = {
     return request('/api/auth/signup', {
       method: 'POST',
       body: JSON.stringify(payload),
+      timeout: 45000,
     }, AUTH_BASE_URL);
   },
 

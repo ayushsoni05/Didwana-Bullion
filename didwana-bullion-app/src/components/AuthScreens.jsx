@@ -43,6 +43,7 @@ function evaluatePassword(password) {
 export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
   const [mode, setMode] = useState('signin'); // 'signin' | 'signup' | 'forgot'
   const [loading, setLoading] = useState(false);
+  const [slowWakeMsg, setSlowWakeMsg] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -70,6 +71,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
 
   const handleSignIn = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setError('');
     if (!identifier.trim() || !password) {
       setError('Please enter your email or mobile number and password.');
@@ -77,6 +79,8 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
     }
 
     setLoading(true);
+    setSlowWakeMsg(false);
+    const slowTimer = setTimeout(() => setSlowWakeMsg(true), 3000);
     try {
       const res = await authApi.login({ identifier, password });
       const token = res.token || res.accessToken || res.data?.token;
@@ -88,12 +92,15 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
     } catch (err) {
       setError(err.message || 'Invalid credentials. Please try again.');
     } finally {
+      clearTimeout(slowTimer);
+      setSlowWakeMsg(false);
       setLoading(false);
     }
   };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setError('');
 
     if (!fullName.trim()) {
@@ -123,6 +130,8 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
     }
 
     setLoading(true);
+    setSlowWakeMsg(false);
+    const slowTimer = setTimeout(() => setSlowWakeMsg(true), 3000);
     try {
       const formattedPhone = cleanPhone.startsWith('91') && cleanPhone.length === 12
         ? `+${cleanPhone}`
@@ -157,6 +166,8 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
     } catch (err) {
       setError(err.message || 'Could not create account. Please try again.');
     } finally {
+      clearTimeout(slowTimer);
+      setSlowWakeMsg(false);
       setLoading(false);
     }
   };
@@ -300,7 +311,11 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
               </div>
 
               <ShimmerButton type="submit" disabled={loading} className="w-full py-3.5">
-                {loading ? 'Signing In...' : 'Sign In to Live Terminals'}
+                {loading
+                  ? slowWakeMsg
+                    ? 'Waking Secure Server...'
+                    : 'Signing In...'
+                  : 'Sign In to Live Terminals'}
               </ShimmerButton>
             </form>
           )}
@@ -471,7 +486,11 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
               </label>
 
               <ShimmerButton type="submit" disabled={loading} className="w-full py-3.5">
-                {loading ? 'Creating Account...' : 'Create Secure Account'}
+                {loading
+                  ? slowWakeMsg
+                    ? 'Waking Secure Server...'
+                    : 'Creating Account...'
+                  : 'Create Secure Account'}
               </ShimmerButton>
             </form>
           )}

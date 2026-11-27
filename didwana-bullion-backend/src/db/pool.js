@@ -13,9 +13,13 @@ const isLocal =
 export const pool = new Pool({
   connectionString,
   ssl: isLocal ? false : { rejectUnauthorized: false },
-  max: 10,
+  max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
+  connectionTimeoutMillis: 15000,
+});
+
+pool.on('error', (err) => {
+  console.error('Unexpected PostgreSQL pool error:', err.message);
 });
 
 export async function initDb() {

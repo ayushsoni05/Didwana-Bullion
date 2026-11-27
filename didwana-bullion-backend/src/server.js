@@ -8,6 +8,9 @@ import authRoutes from './routes/auth.js';
 const app = express();
 const PORT = Number(process.env.PORT || 5050);
 
+// Required behind Render's reverse proxy for accurate rate limiting & client IPs
+app.set('trust proxy', 1);
+
 app.use(helmet());
 app.use(
   cors({

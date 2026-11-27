@@ -131,11 +131,12 @@ export default function App() {
     }
   }, [applyNormalizedRates]);
 
-  // Zero-Blocking Instant Boot: hide native splash immediately, show 1.35s 3-Act SplashGate,
-  // and verify JWT silently in background so cold start never hangs on sleeping backend
+  // Zero-Blocking Instant Boot: hide native splash immediately, pre-warm Postgres backend,
+  // show 1.35s 3-Act SplashGate, and verify JWT silently in background
   useEffect(() => {
     let mounted = true;
     SplashScreen.hide().catch(() => {});
+    authApi.warmUp();
 
     const token = authStorage.getToken();
     if (token) {

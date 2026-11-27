@@ -73,7 +73,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
       const user = res.user || res.data?.user || { email: identifier.trim() };
       if (!token) throw new Error('Authentication token missing from server response.');
 
-      authStorage.saveSession(token, user, rememberMe);
+      authStorage.saveSession(token, user, rememberMe, res.refreshToken || null);
       onAuthenticated(user);
     } catch (err) {
       setError(err.message || 'Invalid credentials. Please try again.');
@@ -142,7 +142,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
       };
 
       if (token) {
-        authStorage.saveSession(token, user, true);
+        authStorage.saveSession(token, user, true, res.refreshToken || null);
         onAuthenticated(user);
       } else {
         setSuccessMsg('Account created! Please sign in with your new credentials.');

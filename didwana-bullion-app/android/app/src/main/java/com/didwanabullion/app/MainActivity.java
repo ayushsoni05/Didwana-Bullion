@@ -11,7 +11,15 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        hardenWindowSecurity();
         enableHighRefreshRate();
+    }
+
+    private void hardenWindowSecurity() {
+        Window window = getWindow();
+        if (window == null) return;
+        // Prevent unencrypted screenshots & screen recording of sensitive session/rate screens
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE);
     }
 
     private void enableHighRefreshRate() {

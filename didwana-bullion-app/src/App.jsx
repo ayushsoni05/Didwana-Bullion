@@ -1,16 +1,19 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Activity, LineChart, Moon, Sun, UserCircle2 } from 'lucide-react';
+import { Activity, Bell, LineChart, Moon, Sun, UserCircle2 } from 'lucide-react';
 import { App as CapApp } from '@capacitor/app';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { Share } from '@capacitor/share';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { APP_INFO } from './config/constants';
-import { authApi, normalizeBullionPayload, pricesApi } from './services/api';
+import { alertsApi, authApi, normalizeBullionPayload, pricesApi } from './services/api';
 import { authStorage, consentStorage, ratesCache } from './services/storage';
 import { playTickSound } from './services/sound';
 import SplashGate, { GoldCrest } from './components/SplashGate';
 import AuthScreens from './components/AuthScreens';
 import LiveRatesTab from './components/LiveRatesTab';
+import { CalculatorModal, PriceAlertsModal } from './components/BullionModals';
 const ChartsTab = lazy(() => import('./components/ChartsTab'));
 const AccountTab = lazy(() => import('./components/AccountTab'));
 import {
@@ -33,6 +36,10 @@ export default function App() {
   const [cookiePrefs, setCookiePrefs] = useState(() => consentStorage.getCookiePrefs());
   const [showCookieModal, setShowCookieModal] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null);
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [showAlerts, setShowAlerts] = useState(false);
+  const [alerts, setAlerts] = useState([]);
+  const triggeredAlertsRef = useRef(new Set());
 
   const [rates, setRates] = useState(() => ratesCache.getLastRates());
   const [prevRates, setPrevRates] = useState(null);
@@ -256,10 +263,77 @@ export default function App() {
   };
 
   const handleSignOut = () => {
+    authApi.logout();
     authStorage.clearSession();
     setUser(null);
     setIsAuthenticated(false);
     setActiveTab('rates');
+  };
+
+  // Load alerts when authenticated
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    alertsApi
+      .list()
+      .then((res) => setAlerts(res?.alerts || []))
+      .catch(() => {});
+  }, [isAuthenticated]);
+
+  // Evaluate live price alerts
+  useEffect(() => {
+    if (!rates || !alerts.length) return;
+    alerts.forEach((a) => {
+      if (!a.is_active || triggeredAlertsRef.current.has(a.id)) return;
+      const ask =
+        rates?.[a.terminal]?.items?.[a.metal_key]?.ask ||
+        rates?.[a.terminal]?.items?.[a.metal_key]?.bid;
+      if (!ask) return;
+      const hit =
+        (a.condition === 'BELOW' && ask <= Number(a.target_ask)) ||
+        (a.condition === 'ABOVE' && ask >= Number(a.target_ask));
+      if (hit) {
+        triggeredAlertsRef.current.add(a.id);
+        LocalNotifications.requestPermissions()
+          .then((p) => {
+            if (p.display === 'granted') {
+              return LocalNotifications.schedule({
+                notifications: [
+                  {
+                    title: `Didwana Bullion Alert: ${a.metal_key}`,
+                    body: `${a.terminal} reached ₹${Math.round(ask).toLocaleString('en-IN')}`,
+                    id: Math.floor(Math.random() * 100000),
+                  },
+                ],
+              });
+            }
+            return null;
+          })
+          .catch(() => {});
+      }
+    });
+  }, [rates, alerts]);
+
+  const handleCreateAlert = async (payload) => {
+    const res = await alertsApi.create(payload);
+    if (res?.alert) setAlerts((prev) => [res.alert, ...prev]);
+  };
+
+  const handleDeleteAlert = async (id) => {
+    await alertsApi.remove(id).catch(() => null);
+    setAlerts((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleShareRates = async () => {
+    const jdrGold = Math.round(rates?.HB?.items?.gold995?.ask || 0).toLocaleString('en-IN');
+    const jdrSilver = Math.round(rates?.HB?.items?.silverPeti?.ask || 0).toLocaleString('en-IN');
+    const sjgGold = Math.round(rates?.MOSUN?.items?.gold995?.ask || 0).toLocaleString('en-IN');
+    const ibjaGold = Math.round(rates?.IBJA?.items?.gold995?.ask || 0).toLocaleString('en-IN');
+    const text = `*Didwana Bullion (New Monika Jewellers)*\nJodhpur Gold 995: ₹${jdrGold}/10g\nJodhpur Silver 1KG: ₹${jdrSilver}\nSujangarh Gold 995: ₹${sjgGold}/10g\nIBJA Gold 995: ₹${ibjaGold}/10g`;
+    try {
+      await Share.share({ title: 'Didwana Bullion Live Rates', text });
+    } catch {
+      navigator.clipboard?.writeText(text).catch(() => {});
+    }
   };
 
   return (
@@ -293,6 +367,17 @@ export default function App() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
+                aria-label="Price Alerts"
+                onClick={() => setShowAlerts(true)}
+                className="relative rounded-full border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#121216] p-2 text-zinc-700 dark:text-[#DFC18A] shadow-sm"
+              >
+                <Bell className="h-3.5 w-3.5" />
+                {alerts.length > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-red-500" />
+                )}
+              </button>
+              <button
+                type="button"
                 aria-label="Toggle Light/Dark Mode"
                 onClick={() => handleUpdatePrefs({ theme: resolvedDark ? 'light' : 'dark' })}
                 className="rounded-full border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#121216] p-2 text-zinc-700 dark:text-[#DFC18A] shadow-sm"
@@ -317,6 +402,9 @@ export default function App() {
               onToggleAudio={() => handleUpdatePrefs({ tickAudio: !prefs.tickAudio })}
               onManualRefresh={fetchLatestOnce}
               refreshing={refreshing}
+              onOpenCalculator={() => setShowCalculator(true)}
+              onOpenAlerts={() => setShowAlerts(true)}
+              onShareRates={handleShareRates}
             />
           )}
 
@@ -398,6 +486,21 @@ export default function App() {
       />
 
       <LegalDocumentModal docType={legalDoc} onClose={() => setLegalDoc(null)} />
+
+      <CalculatorModal
+        open={showCalculator}
+        onClose={() => setShowCalculator(false)}
+        rates={rates}
+      />
+
+      <PriceAlertsModal
+        open={showAlerts}
+        onClose={() => setShowAlerts(false)}
+        alerts={alerts}
+        onCreateAlert={handleCreateAlert}
+        onDeleteAlert={handleDeleteAlert}
+        rates={rates}
+      />
     </div>
   );
 }

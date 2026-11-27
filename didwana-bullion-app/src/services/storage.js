@@ -2,6 +2,7 @@ import { APP_INFO } from '../config/constants';
 
 const KEYS = {
   TOKEN: 'db_auth_token',
+  REFRESH_TOKEN: 'db_auth_refresh_token',
   USER: 'db_auth_user',
   REMEMBER: 'db_auth_remember',
   LEGAL_CONSENT: 'db_legal_consent',
@@ -22,6 +23,7 @@ const DEFAULT_FUNCTIONAL_PREFS = {
   defaultTerminal: 'ALL',
   chartRange: 'LIVE',
   theme: 'dark', // 'dark' | 'light' | 'system'
+  heroPin: { terminal: 'HB', metal: 'gold995' },
 };
 
 function safeGet(storage, key) {
@@ -49,18 +51,28 @@ function safeRemove(storage, key) {
 }
 
 export const authStorage = {
-  saveSession(token, user, rememberMe = true) {
+  saveSession(token, user, rememberMe = true, refreshToken = null) {
     const target = rememberMe ? localStorage : sessionStorage;
     const other = rememberMe ? sessionStorage : localStorage;
     safeRemove(other, KEYS.TOKEN);
+    safeRemove(other, KEYS.REFRESH_TOKEN);
     safeRemove(other, KEYS.USER);
     safeSet(target, KEYS.TOKEN, token);
+    if (refreshToken) safeSet(target, KEYS.REFRESH_TOKEN, refreshToken);
     if (user) safeSet(target, KEYS.USER, JSON.stringify(user));
     safeSet(localStorage, KEYS.REMEMBER, rememberMe ? '1' : '0');
   },
 
   getToken() {
     return safeGet(localStorage, KEYS.TOKEN) || safeGet(sessionStorage, KEYS.TOKEN);
+  },
+
+  getRefreshToken() {
+    return safeGet(localStorage, KEYS.REFRESH_TOKEN) || safeGet(sessionStorage, KEYS.REFRESH_TOKEN);
+  },
+
+  isRemembered() {
+    return safeGet(localStorage, KEYS.REMEMBER) !== '0';
   },
 
   getUser() {
@@ -75,8 +87,10 @@ export const authStorage = {
 
   clearSession() {
     safeRemove(localStorage, KEYS.TOKEN);
+    safeRemove(localStorage, KEYS.REFRESH_TOKEN);
     safeRemove(localStorage, KEYS.USER);
     safeRemove(sessionStorage, KEYS.TOKEN);
+    safeRemove(sessionStorage, KEYS.REFRESH_TOKEN);
     safeRemove(sessionStorage, KEYS.USER);
   },
 };

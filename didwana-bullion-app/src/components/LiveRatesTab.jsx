@@ -7,6 +7,9 @@ import {
   TrendingDown,
   ArrowUpRight,
   ArrowDownRight,
+  Calculator,
+  Bell,
+  Share2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ARBITRAGE_PRODUCTS, TERMINALS } from '../config/constants';
@@ -37,6 +40,9 @@ export default function LiveRatesTab({
   onToggleAudio,
   onManualRefresh,
   refreshing,
+  onOpenCalculator,
+  onOpenAlerts,
+  onShareRates,
 }) {
   const visibleTerminals = useMemo(() => {
     if (activeTerminal === 'ALL') return ['HB', 'MOSUN', 'IBJA'];
@@ -136,9 +142,34 @@ export default function LiveRatesTab({
           </div>
         </div>
 
-        <div className="mt-3 flex items-center justify-between border-t border-[#111111]/15 pt-2 text-[10px] font-semibold text-[#111111]/80">
-          <span>Jodhpur Bullion Hero Ask / Sell</span>
-          <span>Updated {lastUpdatedText} IST</span>
+        <div className="mt-3 flex items-center justify-between border-t border-[#111111]/15 pt-2.5 text-[10px] font-semibold text-[#111111]/80">
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={onOpenCalculator}
+              className="flex items-center gap-1 rounded-full bg-[#111111] px-2.5 py-1 text-[10px] font-bold text-[#E8C97A]"
+            >
+              <Calculator className="h-3 w-3" />
+              Calculator
+            </button>
+            <button
+              type="button"
+              onClick={onOpenAlerts}
+              className="flex items-center gap-1 rounded-full bg-[#111111]/15 px-2.5 py-1 text-[10px] font-bold text-[#111111]"
+            >
+              <Bell className="h-3 w-3" />
+              Alert
+            </button>
+            <button
+              type="button"
+              onClick={onShareRates}
+              className="flex items-center gap-1 rounded-full bg-[#111111]/15 px-2.5 py-1 text-[10px] font-bold text-[#111111]"
+            >
+              <Share2 className="h-3 w-3" />
+              Share
+            </button>
+          </div>
+          <span>{lastUpdatedText}</span>
         </div>
       </motion.div>
 

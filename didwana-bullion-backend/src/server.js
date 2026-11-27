@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import { initDb, pool } from './db/pool.js';
 import authRoutes from './routes/auth.js';
+import alertRoutes from './routes/alerts.js';
 
 const app = express();
 const PORT = Number(process.env.PORT || 5050);
@@ -37,6 +38,7 @@ app.get('/health', async (_req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/alerts', alertRoutes);
 
 initDb()
   .then(() => {

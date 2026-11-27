@@ -2,7 +2,38 @@ import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import { API_BASE_URL, AUTH_BASE_URL } from '../config/constants';
 import { authStorage } from './storage';
 
-async function request(path, options = {}, baseUrl = API_BASE_URL) {
+let refreshPromise = null;
+
+async function tryRefreshToken() {
+  const refreshToken = authStorage.getRefreshToken();
+  if (!refreshToken) return null;
+  if (!refreshPromise) {
+    refreshPromise = rawRequest(
+      '/api/auth/refresh',
+      { method: 'POST', body: JSON.stringify({ refreshToken }), timeout: 30000 },
+      AUTH_BASE_URL
+    )
+      .then((res) => {
+        if (res?.token) {
+          authStorage.saveSession(
+            res.token,
+            res.user || authStorage.getUser(),
+            authStorage.isRemembered(),
+            res.refreshToken || refreshToken
+          );
+          return res.token;
+        }
+        return null;
+      })
+      .catch(() => null)
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
+
+async function rawRequest(path, options = {}, baseUrl = API_BASE_URL) {
   const token = authStorage.getToken();
   const headers = {
     'Content-Type': 'application/json',
@@ -73,6 +104,26 @@ async function request(path, options = {}, baseUrl = API_BASE_URL) {
   }
 }
 
+async function request(path, options = {}, baseUrl = API_BASE_URL) {
+  try {
+    return await rawRequest(path, options, baseUrl);
+  } catch (err) {
+    if (
+      err.status === 401 &&
+      baseUrl === AUTH_BASE_URL &&
+      !path.includes('/login') &&
+      !path.includes('/signup') &&
+      !path.includes('/refresh')
+    ) {
+      const newToken = await tryRefreshToken();
+      if (newToken) {
+        return rawRequest(path, options, baseUrl);
+      }
+    }
+    throw err;
+  }
+}
+
 export const authApi = {
   warmUp() {
     return request('/health', { method: 'GET', timeout: 45000 }, AUTH_BASE_URL).catch(() => null);
@@ -126,6 +177,52 @@ export const authApi = {
         identifier: identifier.trim(),
       }),
     }, AUTH_BASE_URL);
+  },
+
+  async logout() {
+    return request('/api/auth/logout', { method: 'POST' }, AUTH_BASE_URL).catch(() => null);
+  },
+
+  async logoutAll() {
+    return request('/api/auth/logout-all', { method: 'POST' }, AUTH_BASE_URL);
+  },
+
+  async getSessions() {
+    return request('/api/auth/sessions', { method: 'GET' }, AUTH_BASE_URL);
+  },
+
+  async revokeSession(id) {
+    return request(`/api/auth/sessions/${encodeURIComponent(id)}`, { method: 'DELETE' }, AUTH_BASE_URL);
+  },
+
+  async changePassword({ currentPassword, newPassword }) {
+    return request('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }, AUTH_BASE_URL);
+  },
+
+  async getAuditLogs() {
+    return request('/api/auth/audit-logs', { method: 'GET' }, AUTH_BASE_URL);
+  },
+
+  async deleteAccount() {
+    return request('/api/auth/me', { method: 'DELETE' }, AUTH_BASE_URL);
+  },
+};
+
+export const alertsApi = {
+  async list() {
+    return request('/api/alerts', { method: 'GET' }, AUTH_BASE_URL);
+  },
+  async create(payload) {
+    return request('/api/alerts', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }, AUTH_BASE_URL);
+  },
+  async remove(id) {
+    return request(`/api/alerts/${encodeURIComponent(id)}`, { method: 'DELETE' }, AUTH_BASE_URL);
   },
 };
 

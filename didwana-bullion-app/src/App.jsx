@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Activity, LineChart, Moon, Sun, UserCircle2 } from 'lucide-react';
 import { App as CapApp } from '@capacitor/app';
@@ -11,8 +11,8 @@ import { playTickSound } from './services/sound';
 import SplashGate, { GoldCrest } from './components/SplashGate';
 import AuthScreens from './components/AuthScreens';
 import LiveRatesTab from './components/LiveRatesTab';
-import ChartsTab from './components/ChartsTab';
-import AccountTab from './components/AccountTab';
+const ChartsTab = lazy(() => import('./components/ChartsTab'));
+const AccountTab = lazy(() => import('./components/AccountTab'));
 import {
   CookiePreferencesModal,
   FirstLaunchConsentBanner,
@@ -131,44 +131,42 @@ export default function App() {
     }
   }, [applyNormalizedRates]);
 
-  // Boot sequence
+  // Zero-Blocking Instant Boot: hide native splash immediately, show 1.35s 3-Act SplashGate,
+  // and verify JWT silently in background so cold start never hangs on sleeping backend
   useEffect(() => {
     let mounted = true;
-    const init = async () => {
-      const token = authStorage.getToken();
-      if (token) {
-        try {
-          const me = await authApi.getMe();
-          if (mounted) {
-            const userObj = me?.user || me?.data || me;
-            setUser(userObj);
-            setIsAuthenticated(true);
-          }
-        } catch (err) {
+    SplashScreen.hide().catch(() => {});
+
+    const token = authStorage.getToken();
+    if (token) {
+      authApi
+        .getMe()
+        .then((me) => {
+          if (!mounted) return;
+          const userObj = me?.user || me?.data || me;
+          if (userObj) setUser(userObj);
+        })
+        .catch((err) => {
           if (mounted && (err.status === 401 || err.status === 403)) {
             authStorage.clearSession();
             setUser(null);
             setIsAuthenticated(false);
           }
-        }
-      }
+        });
+    }
 
-      await new Promise((r) => setTimeout(r, 900));
-      if (!mounted) return;
-      try {
-        await SplashScreen.hide();
-      } catch {
-        // Ignore on web
-      }
+    const fadeTimer = setTimeout(() => {
+      if (mounted) setFadingSplash(true);
+    }, 1250);
 
-      setFadingSplash(true);
-      setTimeout(() => {
-        if (mounted) setBooting(false);
-      }, 450);
-    };
-    init();
+    const doneTimer = setTimeout(() => {
+      if (mounted) setBooting(false);
+    }, 1600);
+
     return () => {
       mounted = false;
+      clearTimeout(fadeTimer);
+      clearTimeout(doneTimer);
     };
   }, []);
 
@@ -322,23 +320,27 @@ export default function App() {
           )}
 
           {activeTab === 'charts' && (
-            <ChartsTab
-              rates={rates}
-              liveBuffer={liveBuffer}
-              initialRange={prefs.chartRange}
-              onRangeChange={(chartRange) => handleUpdatePrefs({ chartRange })}
-            />
+            <Suspense fallback={<div className="py-12 text-center text-xs text-zinc-500">Loading Charts...</div>}>
+              <ChartsTab
+                rates={rates}
+                liveBuffer={liveBuffer}
+                initialRange={prefs.chartRange}
+                onRangeChange={(chartRange) => handleUpdatePrefs({ chartRange })}
+              />
+            </Suspense>
           )}
 
           {activeTab === 'account' && (
-            <AccountTab
-              user={user}
-              prefs={prefs}
-              onUpdatePrefs={handleUpdatePrefs}
-              onOpenDoc={setLegalDoc}
-              onOpenCookiePrefs={() => setShowCookieModal(true)}
-              onSignOut={handleSignOut}
-            />
+            <Suspense fallback={<div className="py-12 text-center text-xs text-zinc-500">Loading Account...</div>}>
+              <AccountTab
+                user={user}
+                prefs={prefs}
+                onUpdatePrefs={handleUpdatePrefs}
+                onOpenDoc={setLegalDoc}
+                onOpenCookiePrefs={() => setShowCookieModal(true)}
+                onSignOut={handleSignOut}
+              />
+            </Suspense>
           )}
 
           {/* Floating Mobile Bottom Navigation (3 Focused Tabs with 21st.dev Spring Pill) */}

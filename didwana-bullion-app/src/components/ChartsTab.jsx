@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { LineChart, RefreshCw, Radio } from 'lucide-react';
+import { LineChart, RefreshCw } from 'lucide-react';
 import { pricesApi } from '../services/api';
+import { BentoCard } from './ui/BentoCard';
 
 const RANGES = ['LIVE', '1D', '1W', '1M', '1Y'];
 const METALS = [
@@ -67,7 +68,6 @@ export default function ChartsTab({
         IBJA: Number(snap.IBJA?.items?.[metal]?.ask || snap.IBJA?.items?.[metal]?.bid || 0),
       }));
       if (pts.length >= 2) return pts;
-      // Seed 2 points from current rates while live buffer builds
       if (rates) {
         const cur = {
           label: formatShortTime(rates.timestamp, 'LIVE'),
@@ -114,64 +114,61 @@ export default function ChartsTab({
     const rawMin = Math.min(...vals);
     const rawMax = Math.max(...vals);
     const avg = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
-    const pad = Math.max(40, (rawMax - rawMin) * 0.14);
+    const pad = Math.max(40, (rawMax - rawMin) * 0.16);
     return { minVal: rawMin - pad, maxVal: rawMax + pad, rawMin, rawMax, avg };
   }, [series]);
 
   const W = 320;
-  const H = 160;
+  const H = 165;
 
-  const getPoints = (key) => {
-    if (!series.length) return [];
-    return series.map((pt, idx) => {
-      const x = (idx / Math.max(1, series.length - 1)) * W;
-      const val = pt[key] || stats.minVal;
-      const y = H - ((val - stats.minVal) / Math.max(1, stats.maxVal - stats.minVal)) * H;
-      return { x, y };
-    });
-  };
-
-  const hbPoints = useMemo(() => getPoints('HB'), [series, stats]);
-  const mosunPoints = useMemo(() => getPoints('MOSUN'), [series, stats]);
-  const ibjaPoints = useMemo(() => getPoints('IBJA'), [series, stats]);
+  const { hbPoints, mosunPoints, ibjaPoints } = useMemo(() => {
+    const mapKey = (key) =>
+      series.map((pt, idx) => {
+        const x = (idx / Math.max(1, series.length - 1)) * W;
+        const val = pt[key] || stats.minVal;
+        const y = H - ((val - stats.minVal) / Math.max(1, stats.maxVal - stats.minVal)) * H;
+        return { x, y };
+      });
+    return {
+      hbPoints: mapKey('HB'),
+      mosunPoints: mapKey('MOSUN'),
+      ibjaPoints: mapKey('IBJA'),
+    };
+  }, [series, stats]);
 
   const toPolyline = (pts) => pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
   const toArea = (pts) => {
     if (!pts.length) return '';
-    const line = toPolyline(pts);
-    return `0,${H} ${line} ${W},${H}`;
+    return `0,${H} ${toPolyline(pts)} ${W},${H}`;
   };
 
   const handlePointer = (clientX) => {
     if (!svgRef.current || !series.length) return;
     const rect = svgRef.current.getBoundingClientRect();
     const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / Math.max(1, rect.width)));
-    const idx = Math.round(ratio * (series.length - 1));
-    setHoverIdx(idx);
+    setHoverIdx(Math.round(ratio * (series.length - 1)));
   };
 
   const activeIndex = hoverIdx !== null && series[hoverIdx] ? hoverIdx : series.length - 1;
   const activePoint = series[activeIndex] || {};
-  const activeX = hbPoints[activeIndex]?.x ?? W;
+  const activeNode = hbPoints[activeIndex] || { x: W, y: H / 2 };
   const spread = activePoint.HB && activePoint.IBJA ? activePoint.HB - activePoint.IBJA : 0;
 
   return (
     <div className="space-y-4 pb-28">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <LineChart className="h-4 w-4 text-[#8C6A2E] dark:text-[#DFC18A]" />
-          <h2 className="text-sm font-bold tracking-wide text-zinc-900 dark:text-[#F4EFE6] uppercase">
-            3-Terminal Interactive Chart
+          <LineChart className="h-4 w-4 text-[#8C6A2E] dark:text-[#E8C97A]" />
+          <h2 className="text-sm font-bold tracking-wide text-zinc-900 dark:text-[#E8C97A] uppercase">
+            Gold &amp; Silver Price Trends
           </h2>
         </div>
         <button
           type="button"
           onClick={() => loadHistory(range)}
-          className="rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#121216] p-2 text-zinc-600 dark:text-zinc-300"
+          className="rounded-full border border-zinc-200 dark:border-[#C5A358]/30 bg-white dark:bg-[#1A1A1A] p-2 text-zinc-600 dark:text-[#E8C97A]"
         >
-          <RefreshCw
-            className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-[#8C6A2E] dark:text-[#DFC18A]' : ''}`}
-          />
+          <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
         </button>
       </div>
 
@@ -185,10 +182,10 @@ export default function ChartsTab({
               setMetal(m.id);
               setHoverIdx(null);
             }}
-            className={`rounded-xl py-2.5 px-2 text-[11px] font-bold transition ${
+            className={`rounded-full py-2 px-2 text-[11px] font-bold transition ${
               metal === m.id
-                ? 'bg-gradient-to-r from-[#DFC18A] to-[#C8A96E] text-[#0B0B0D]'
-                : 'border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#121216] text-zinc-600 dark:text-zinc-400'
+                ? 'bg-gradient-to-r from-[#E8C97A] to-[#C9A452] text-[#111111]'
+                : 'border border-zinc-200 dark:border-[#C5A358]/25 bg-white dark:bg-[#1A1A1A] text-zinc-600 dark:text-zinc-400'
             }`}
           >
             {m.label}
@@ -196,162 +193,142 @@ export default function ChartsTab({
         ))}
       </div>
 
-      {/* Timeframe Selector */}
-      <div className="grid grid-cols-5 gap-1 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#121216] p-1">
-        {RANGES.map((r) => (
-          <button
-            key={r}
-            type="button"
-            onClick={() => {
-              setRange(r);
-              setHoverIdx(null);
-              onRangeChange?.(r);
-            }}
-            className={`flex items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-bold transition ${
-              range === r
-                ? 'bg-[#C8A96E]/20 text-[#8C6A2E] dark:text-[#DFC18A]'
-                : 'text-zinc-500'
-            }`}
-          >
-            {r === 'LIVE' && <Radio className="h-2.5 w-2.5 text-emerald-500 animate-pulse" />}
-            {r}
-          </button>
-        ))}
-      </div>
-
-      {/* Interactive SVG Comparison Chart */}
-      <div className="rounded-2xl border border-zinc-200 dark:border-[#9E7D47]/25 bg-white dark:bg-[#121216] p-4 shadow-sm">
-        {/* Live / Crosshair HUD */}
+      {/* Behance Minimal Spline Area Chart (Zero Grid Clutter + Floating Gold Pill Tooltip) */}
+      <BentoCard className="p-4 border-[#C5A358]/25">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-[11px]">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="flex items-center gap-1.5 font-semibold text-[#8C6A2E] dark:text-[#DFC18A] tabular-nums">
-              <span className="h-2 w-2 rounded-full bg-[#C8A96E]" />
+            <span className="flex items-center gap-1.5 font-semibold text-[#8C6A2E] dark:text-[#E8C97A] tabular-nums">
+              <span className="h-2 w-2 rounded-full bg-[#E8C97A]" />
               Jodhpur: ₹{Math.round(activePoint.HB || 0).toLocaleString('en-IN')}
             </span>
             <span className="flex items-center gap-1.5 font-semibold text-sky-600 dark:text-sky-300 tabular-nums">
-              <span className="h-2 w-2 rounded-full bg-sky-500" />
+              <span className="h-2 w-2 rounded-full bg-sky-400" />
               Sujangarh: ₹{Math.round(activePoint.MOSUN || 0).toLocaleString('en-IN')}
             </span>
-            <span className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-300 tabular-nums">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              IBJA: ₹{Math.round(activePoint.IBJA || 0).toLocaleString('en-IN')}
-            </span>
           </div>
-          <span className="text-[10px] font-medium text-zinc-500">{activePoint.label || range}</span>
+          {/* Floating Behance Warm-Gold Pill Tooltip */}
+          <div className="rounded-full bg-gradient-to-r from-[#E8C97A] to-[#C9A452] px-3 py-0.5 text-[10px] font-bold text-[#111111] tabular-nums shadow">
+            {activePoint.label || range} • ₹{Math.round(activePoint.HB || 0).toLocaleString('en-IN')}
+          </div>
         </div>
 
         <div
-          className="relative w-full overflow-hidden rounded-xl bg-[#FAF8F4] dark:bg-[#0B0B0D] p-3 border border-zinc-200/80 dark:border-white/5 touch-none"
+          className="relative w-full overflow-hidden rounded-2xl bg-[#FAF8F4] dark:bg-[#0D0D0D] p-3 touch-none"
           onPointerMove={(e) => handlePointer(e.clientX)}
           onPointerDown={(e) => handlePointer(e.clientX)}
           onPointerLeave={() => setHoverIdx(null)}
         >
           <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="h-48 w-full overflow-visible">
             <defs>
-              <linearGradient id="goldAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#C8A96E" stopOpacity="0.28" />
-                <stop offset="100%" stopColor="#C8A96E" stopOpacity="0.0" />
+              <linearGradient id="behanceGoldArea" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#E8C97A" stopOpacity="0.34" />
+                <stop offset="100%" stopColor="#E8C97A" stopOpacity="0.0" />
               </linearGradient>
             </defs>
 
-            {[0, 40, 80, 120, 160].map((y) => (
-              <line
-                key={y}
-                x1="0"
-                y1={y}
-                x2={W}
-                y2={y}
-                stroke="currentColor"
-                className="text-zinc-200 dark:text-white/5"
-                strokeWidth="1"
-              />
-            ))}
-
             {hbPoints.length > 0 && (
-              <polygon fill="url(#goldAreaGrad)" points={toArea(hbPoints)} />
+              <polygon fill="url(#behanceGoldArea)" points={toArea(hbPoints)} />
             )}
 
             <polyline
               fill="none"
-              stroke="#C8A96E"
-              strokeWidth="2.5"
+              stroke="#E8C97A"
+              strokeWidth="2.2"
               strokeLinejoin="round"
               points={toPolyline(hbPoints)}
             />
             <polyline
               fill="none"
-              stroke="#0EA5E9"
-              strokeWidth="2"
+              stroke="#38BDF8"
+              strokeWidth="1.6"
               strokeLinejoin="round"
               points={toPolyline(mosunPoints)}
             />
             <polyline
               fill="none"
-              stroke="#10B981"
-              strokeWidth="1.8"
+              stroke="#34D399"
+              strokeWidth="1.4"
               strokeDasharray="4 3"
               strokeLinejoin="round"
               points={toPolyline(ibjaPoints)}
             />
 
-            {/* Crosshair Line */}
+            {/* Glowing Active Dot */}
             {series.length > 0 && (
-              <line
-                x1={activeX}
-                y1="0"
-                x2={activeX}
-                y2={H}
-                stroke="#C8A96E"
-                strokeWidth="1"
-                strokeDasharray="3 3"
-              />
+              <>
+                <circle cx={activeNode.x} cy={activeNode.y} r="7" fill="#E8C97A" fillOpacity="0.28" />
+                <circle cx={activeNode.x} cy={activeNode.y} r="3.5" fill="#FFFFFF" stroke="#E8C97A" strokeWidth="2" />
+              </>
             )}
           </svg>
-
-          <div className="mt-2 flex justify-between text-[10px] text-zinc-500">
-            <span>{series[0]?.label || 'Start'}</span>
-            <span>Drag chart to inspect</span>
-            <span>{series[series.length - 1]?.label || 'Now'}</span>
-          </div>
         </div>
-      </div>
+
+        {/* Behance Dotted Track + Pill Timeframe Selector */}
+        <div className="relative mt-4 flex items-center justify-between">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-4 top-1/2 -translate-y-1/2 border-t border-dotted border-[#C5A358]/40"
+          />
+          {RANGES.map((r) => {
+            const active = range === r;
+            return (
+              <button
+                key={r}
+                type="button"
+                onClick={() => {
+                  setRange(r);
+                  setHoverIdx(null);
+                  onRangeChange?.(r);
+                }}
+                className={`relative z-10 rounded-full px-3 py-1 text-[11px] font-bold transition ${
+                  active
+                    ? 'bg-gradient-to-r from-[#E8C97A] to-[#C9A452] text-[#111111] shadow'
+                    : 'border border-[#C5A358]/40 bg-white dark:bg-[#1A1A1A] text-zinc-600 dark:text-[#C5A358]'
+                }`}
+              >
+                {r}
+              </button>
+            );
+          })}
+        </div>
+      </BentoCard>
 
       {/* High / Low / Avg Pills */}
       <div className="grid grid-cols-3 gap-2">
-        <div className="rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#121216] p-3 text-center">
+        <div className="rounded-2xl border border-zinc-200 dark:border-[#C5A358]/20 bg-white dark:bg-[#1A1A1A] p-3 text-center">
           <div className="text-[10px] uppercase text-zinc-500">Range Low</div>
-          <div className="mt-0.5 font-mono tabular-nums text-xs font-bold text-zinc-900 dark:text-[#F4EFE6]">
+          <div className="mt-0.5 font-mono tabular-nums text-xs font-bold text-zinc-900 dark:text-[#EDEDED]">
             ₹{stats.rawMin.toLocaleString('en-IN')}
           </div>
         </div>
-        <div className="rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#121216] p-3 text-center">
+        <div className="rounded-2xl border border-zinc-200 dark:border-[#C5A358]/20 bg-white dark:bg-[#1A1A1A] p-3 text-center">
           <div className="text-[10px] uppercase text-zinc-500">Average</div>
-          <div className="mt-0.5 font-mono tabular-nums text-xs font-bold text-[#8C6A2E] dark:text-[#DFC18A]">
+          <div className="mt-0.5 font-mono tabular-nums text-xs font-bold text-[#8C6A2E] dark:text-[#E8C97A]">
             ₹{stats.avg.toLocaleString('en-IN')}
           </div>
         </div>
-        <div className="rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#121216] p-3 text-center">
+        <div className="rounded-2xl border border-zinc-200 dark:border-[#C5A358]/20 bg-white dark:bg-[#1A1A1A] p-3 text-center">
           <div className="text-[10px] uppercase text-zinc-500">Range High</div>
-          <div className="mt-0.5 font-mono tabular-nums text-xs font-bold text-zinc-900 dark:text-[#F4EFE6]">
+          <div className="mt-0.5 font-mono tabular-nums text-xs font-bold text-zinc-900 dark:text-[#EDEDED]">
             ₹{stats.rawMax.toLocaleString('en-IN')}
           </div>
         </div>
       </div>
 
       {/* Spread Summary Card */}
-      <div className="rounded-2xl border border-zinc-200 dark:border-[#9E7D47]/25 bg-white dark:bg-[#121216] p-4 flex items-center justify-between shadow-sm">
+      <BentoCard className="p-4 flex items-center justify-between border-[#C5A358]/25">
         <div>
-          <div className="text-xs font-bold text-zinc-900 dark:text-[#F4EFE6]">
+          <div className="text-xs font-bold text-zinc-900 dark:text-[#EDEDED]">
             Jodhpur vs IBJA Spread
           </div>
           <div className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">
             Selected point differential
           </div>
         </div>
-        <div className="font-mono tabular-nums text-base font-extrabold text-[#8C6A2E] dark:text-[#DFC18A]">
+        <div className="font-mono tabular-nums text-base font-extrabold text-[#8C6A2E] dark:text-[#E8C97A]">
           {spread >= 0 ? '+' : '-'}₹{Math.abs(Math.round(spread)).toLocaleString('en-IN')}
         </div>
-      </div>
+      </BentoCard>
     </div>
   );
 }

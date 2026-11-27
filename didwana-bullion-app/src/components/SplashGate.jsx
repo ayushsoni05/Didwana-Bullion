@@ -9,7 +9,7 @@ export function GoldCrest({ size = 40, className = '' }) {
   return (
     <div
       style={{ width: size, height: size }}
-      className={`relative shrink-0 overflow-hidden rounded-2xl border border-[#C5A358]/50 bg-[#0D111A] shadow-[0_8px_24px_-6px_rgba(232,201,122,0.35)] ${className}`}
+      className={`relative shrink-0 overflow-hidden rounded-2xl border border-[#D4AF37]/50 bg-[#0D111A] shadow-[0_8px_24px_-6px_rgba(212,175,55,0.38)] ${className}`}
     >
       <img
         src={dbLogoHdr}
@@ -27,47 +27,38 @@ export default function SplashGate({ fadingOut }) {
       animate={{ opacity: fadingOut ? 0 : 1 }}
       transition={{ duration: 0.35, ease: WEBFLOW_EASE }}
       style={{ willChange: 'opacity, transform' }}
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-between overflow-hidden bg-gradient-to-b from-[#0A0A0A] to-[#121212] px-6 py-10 safe-top safe-bottom ${
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-between overflow-hidden bg-[#07090F] px-6 py-10 safe-top safe-bottom ${
         fadingOut ? 'pointer-events-none' : ''
       }`}
     >
-      {/* Behance Faint Concentric Golden Line-Art Watermark */}
+      {/* Subtle Concentric Gold Watermark */}
       <svg
         aria-hidden="true"
         viewBox="0 0 400 400"
         className="pointer-events-none absolute -bottom-28 left-1/2 h-[420px] w-[420px] -translate-x-1/2 opacity-15"
       >
         {[80, 115, 150, 185].map((r) => (
-          <circle
-            key={r}
-            cx="200"
-            cy="200"
-            r={r}
-            fill="none"
-            stroke="#C5A358"
-            strokeWidth="1"
-          />
+          <circle key={r} cx="200" cy="200" r={r} fill="none" stroke="#D4AF37" strokeWidth="1" />
         ))}
       </svg>
 
-      {/* Top Micro-Hallmark */}
+      {/* Top Editorial Hallmark */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, delay: 0.15, ease: WEBFLOW_EASE }}
-        className="relative z-10 rounded-full border border-[#C5A358]/35 bg-[#C5A358]/10 px-4 py-1 text-[10px] font-semibold tracking-[0.22em] text-[#E8C97A] uppercase"
+        transition={{ duration: 0.45, delay: 0.12, ease: WEBFLOW_EASE }}
+        className="relative z-10 rounded-full border border-[#D4AF37]/35 bg-[#D4AF37]/10 px-4 py-1 text-[10px] font-semibold tracking-[0.22em] text-[#E6CB94] uppercase"
       >
-        24K • 999.9 Purest Bullion
+        24K • 999.9 Institutional Telemetry
       </motion.div>
 
-      {/* Center Stage (Behance 01 Layout) */}
+      {/* Center Stage */}
       <div className="relative z-10 flex flex-col items-center text-center">
         <motion.div
           initial={{ scale: 0.78, opacity: 0, y: 14 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 320, damping: 24 }}
-          style={{ willChange: 'transform, opacity' }}
-          className="relative mb-5 overflow-hidden rounded-3xl border border-[#E8C97A]/55 bg-[#0D111A] p-1.5 shadow-[0_20px_60px_-12px_rgba(232,201,122,0.45)]"
+          className="relative mb-5 overflow-hidden rounded-3xl border border-[#D4AF37]/55 bg-[#0D111A] p-1.5 shadow-[0_20px_60px_-12px_rgba(212,175,55,0.42)]"
         >
           <img
             src={dbLogoHdr}
@@ -80,19 +71,18 @@ export default function SplashGate({ fadingOut }) {
           />
         </motion.div>
 
-        {/* Thin Horizontal Gold Divider */}
         <motion.div
           initial={{ scaleX: 0, opacity: 0 }}
           animate={{ scaleX: 1, opacity: 1 }}
-          transition={{ duration: 0.45, delay: 0.2, ease: WEBFLOW_EASE }}
-          className="mb-4 h-px w-28 bg-gradient-to-r from-transparent via-[#E8C97A] to-transparent"
+          transition={{ duration: 0.45, delay: 0.18, ease: WEBFLOW_EASE }}
+          className="mb-4 h-px w-28 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent"
         />
 
         <motion.h1
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.25, ease: WEBFLOW_EASE }}
-          className="text-2xl font-bold tracking-[0.22em] text-[#E8C97A] uppercase"
+          transition={{ duration: 0.45, delay: 0.22, ease: WEBFLOW_EASE }}
+          className="font-serif-luxury text-3xl font-bold tracking-[0.08em] text-[#E6CB94]"
         >
           {APP_INFO.name}
         </motion.h1>
@@ -100,27 +90,27 @@ export default function SplashGate({ fadingOut }) {
         <motion.p
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.35, ease: WEBFLOW_EASE }}
-          className="mt-1.5 text-[11px] font-medium tracking-[0.22em] text-[#C5A358] uppercase"
+          transition={{ duration: 0.45, delay: 0.32, ease: WEBFLOW_EASE }}
+          className="mt-1.5 text-[11px] font-semibold tracking-[0.24em] text-[#D4AF37]/80 uppercase"
         >
           New Monika Jewellers • Didwana
         </motion.p>
 
         <div className="mt-7 h-0.5 w-44 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full w-1/2 rounded-full bg-gradient-to-r from-[#C9A452] via-[#E8C97A] to-[#C9A452] animate-splash-bar" />
+          <div className="h-full w-1/2 rounded-full bg-gradient-to-r from-[#9E7D47] via-[#E6CB94] to-[#9E7D47] animate-splash-bar" />
         </div>
       </div>
 
-      {/* Bottom Live Status Pill */}
+      {/* Bottom Live Pill */}
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, delay: 0.42, ease: WEBFLOW_EASE }}
-        className="relative z-10 w-full max-w-xs rounded-full border border-[#C5A358]/35 bg-[#1A1A1A]/90 px-4 py-2.5 text-center shadow-xl"
+        transition={{ duration: 0.45, delay: 0.4, ease: WEBFLOW_EASE }}
+        className="relative z-10 w-full max-w-xs rounded-full border border-[#D4AF37]/30 bg-[#10141F]/90 px-4 py-2.5 text-center shadow-xl"
       >
-        <div className="flex items-center justify-center gap-2 text-[10px] font-bold tracking-[0.16em] text-[#EDEDED] uppercase">
+        <div className="font-mono-price flex items-center justify-center gap-2 text-[10px] font-bold tracking-[0.14em] text-[#F4EFE6] uppercase">
           <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-          Jodhpur • Sujangarh • IBJA 24H Live
+          Jodhpur • Sujangarh • IBJA 24H
         </div>
       </motion.div>
     </motion.div>

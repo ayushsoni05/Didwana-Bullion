@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Bell, BellRing, Calculator, CheckCircle2, Plus, Trash2, X } from 'lucide-react';
+import { Bell, BellRing, Calculator, CheckCircle2, Plus, Trash2 } from 'lucide-react';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { BottomSheetModal } from './ui/BottomSheetModal';
+import { LuxurySelect } from './ui/LuxurySelect';
+import { ShimmerButton } from './ui/ShimmerButton';
 
 function formatINR(num) {
   if (!Number.isFinite(Number(num)) || Number(num) <= 0) return '—';
@@ -11,6 +14,7 @@ export function CalculatorModal({ open, onClose, rates, preset }) {
   const [terminal, setTerminal] = useState(preset?.terminal || 'HB');
   const [metalKey, setMetalKey] = useState(preset?.metalKey || 'gold995');
   const [weight, setWeight] = useState('10');
+  const [weightUnit, setWeightUnit] = useState('g'); // 'g' | 'tola' | 'kg'
   const [includeGst, setIncludeGst] = useState(true);
 
   useEffect(() => {
@@ -26,124 +30,117 @@ export function CalculatorModal({ open, onClose, rates, preset }) {
 
   const liveAsk = selectedProd?.ask || selectedProd?.bid || preset?.customAsk || 0;
   const baseUnitGrams = String(selectedProd?.unit || '').toLowerCase().includes('kg') ? 1000 : 10;
-  const weightNum = Math.max(0, Number(weight) || 0);
-  const baseTotal = liveAsk > 0 ? (liveAsk / baseUnitGrams) * weightNum : 0;
+  const rawWeight = Math.max(0, Number(weight) || 0);
+  const weightInGrams =
+    weightUnit === 'kg' ? rawWeight * 1000 : weightUnit === 'tola' ? rawWeight * 11.664 : rawWeight;
+  const baseTotal = liveAsk > 0 ? (liveAsk / baseUnitGrams) * weightInGrams : 0;
   const gstAmount = includeGst ? baseTotal * 0.03 : 0;
   const grandTotal = baseTotal + gstAmount;
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl border border-[#D4AF37]/30 bg-white dark:bg-[#111520] p-5 shadow-2xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[#9A7422] dark:text-[#E6CB94]">
-            <Calculator className="h-5 w-5" />
-            <h3 className="text-base font-bold">Showroom Bullion Calculator</h3>
-          </div>
-          <button onClick={onClose} className="rounded-full p-1.5 text-zinc-400 hover:text-white">
-            <X className="h-4 w-4" />
-          </button>
+    <BottomSheetModal open={open} onClose={onClose} title="Showroom Calculator" icon={Calculator}>
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 gap-1.5">
+          {[
+            { id: 'HB', label: 'Jodhpur' },
+            { id: 'MOSUN', label: 'Sujangarh' },
+            { id: 'IBJA', label: 'IBJA' },
+          ].map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTerminal(t.id)}
+              className={`rounded-xl py-2 text-xs font-bold transition ${
+                terminal === t.id
+                  ? 'bg-gradient-to-r from-[#E6CB94] to-[#C9A452] text-[#07090F]'
+                  : 'border border-zinc-200 dark:border-white/10 text-zinc-500'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
 
-        <div className="mt-4 space-y-3.5">
-          <div className="grid grid-cols-3 gap-1.5">
-            {[
-              { id: 'HB', label: 'Jodhpur' },
-              { id: 'MOSUN', label: 'Sujangarh' },
-              { id: 'IBJA', label: 'IBJA' },
-            ].map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setTerminal(t.id)}
-                className={`rounded-xl py-2 text-xs font-bold ${
-                  terminal === t.id
-                    ? 'bg-[#D4AF37] text-[#090B10]'
-                    : 'border border-zinc-200 dark:border-white/10 text-zinc-500'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
+        <LuxurySelect
+          label="Bullion Product"
+          value={selectedProd?.key || metalKey}
+          onChange={setMetalKey}
+          options={termList.map((p) => ({
+            value: p.key,
+            label: p.name,
+            hint: `${p.tag} • ${p.unit}`,
+          }))}
+        />
 
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-zinc-500">
-                Product
-              </label>
-              <select
-                value={selectedProd?.key || metalKey}
-                onChange={(e) => setMetalKey(e.target.value)}
-                className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#090B10] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
-              >
-                {termList.map((p) => (
-                  <option key={p.key} value={p.key}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-zinc-500">
-                Weight (Grams)
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#090B10] px-3 py-2 text-xs font-mono font-bold text-zinc-900 dark:text-zinc-100"
-              />
-            </div>
-          </div>
-
-          <label className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-white/10 px-3.5 py-2.5 text-xs">
-            <span className="font-medium text-zinc-700 dark:text-zinc-300">Include 3% GST</span>
+        <div className="grid grid-cols-2 gap-2.5">
+          <div>
+            <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
+              Quantity
+            </label>
             <input
-              type="checkbox"
-              checked={includeGst}
-              onChange={(e) => setIncludeGst(e.target.checked)}
-              className="h-4 w-4 accent-[#D4AF37]"
+              type="number"
+              min="0"
+              step="0.1"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              className="font-mono-price w-full rounded-xl border border-zinc-200 dark:border-[#D4AF37]/30 bg-zinc-50 dark:bg-[#07090F] px-3.5 py-2.5 text-sm font-bold text-zinc-900 dark:text-zinc-100 focus:border-[#D4AF37] focus:outline-none"
             />
-          </label>
+          </div>
 
-          <div className="rounded-2xl border border-[#D4AF37]/30 bg-zinc-50 dark:bg-[#090B10] p-4">
-            <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
-              <span>Live Ask ({selectedProd?.unit})</span>
-              <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
-                {formatINR(liveAsk)}
+          <LuxurySelect
+            label="Weight Unit"
+            value={weightUnit}
+            onChange={setWeightUnit}
+            options={[
+              { value: 'g', label: 'Grams (g)' },
+              { value: 'tola', label: 'Tola (11.664g)' },
+              { value: 'kg', label: 'Kilogram (KG)' },
+            ]}
+          />
+        </div>
+
+        <label className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-white/10 px-3.5 py-2.5 text-xs">
+          <span className="font-semibold text-zinc-700 dark:text-zinc-300">Include 3% GST</span>
+          <input
+            type="checkbox"
+            checked={includeGst}
+            onChange={(e) => setIncludeGst(e.target.checked)}
+            className="h-4 w-4 accent-[#D4AF37]"
+          />
+        </label>
+
+        <div className="rounded-2xl border border-[#D4AF37]/30 bg-zinc-50 dark:bg-[#07090F] p-4 space-y-1.5">
+          <div className="flex justify-between text-xs text-zinc-500">
+            <span>Live Ask ({selectedProd?.unit})</span>
+            <span className="font-mono-price font-bold text-zinc-900 dark:text-zinc-100">
+              {formatINR(liveAsk)}
+            </span>
+          </div>
+          <div className="flex justify-between text-xs text-zinc-500">
+            <span>Base ({weightInGrams.toFixed(2)}g)</span>
+            <span className="font-mono-price font-bold text-zinc-900 dark:text-zinc-100">
+              {formatINR(baseTotal)}
+            </span>
+          </div>
+          {includeGst && (
+            <div className="flex justify-between text-xs text-zinc-500">
+              <span>GST (3%)</span>
+              <span className="font-mono-price font-bold text-zinc-900 dark:text-zinc-100">
+                {formatINR(gstAmount)}
               </span>
             </div>
-            <div className="mt-1 flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
-              <span>Subtotal ({weightNum}g)</span>
-              <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
-                {formatINR(baseTotal)}
-              </span>
-            </div>
-            {includeGst && (
-              <div className="mt-1 flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
-                <span>GST (3%)</span>
-                <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
-                  {formatINR(gstAmount)}
-                </span>
-              </div>
-            )}
-            <div className="mt-2.5 border-t border-zinc-200 dark:border-white/10 pt-2 flex items-baseline justify-between">
-              <span className="text-xs font-bold uppercase text-[#9A7422] dark:text-[#D4AF37]">
-                Estimated Total
-              </span>
-              <span className="font-mono text-2xl font-extrabold text-zinc-900 dark:text-[#E6CB94]">
-                {formatINR(grandTotal)}
-              </span>
-            </div>
+          )}
+          <div className="mt-2 border-t border-zinc-200 dark:border-white/10 pt-2.5 flex items-baseline justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#9A7422] dark:text-[#D4AF37]">
+              Estimated Quote
+            </span>
+            <span className="font-mono-price text-2xl font-extrabold text-zinc-900 dark:text-[#E6CB94]">
+              {formatINR(grandTotal)}
+            </span>
           </div>
         </div>
       </div>
-    </div>
+    </BottomSheetModal>
   );
 }
 
@@ -161,7 +158,7 @@ export function PriceAlertsModal({
   const [condition, setCondition] = useState('BELOW');
   const [targetAsk, setTargetAsk] = useState('');
   const [saving, setSaving] = useState(false);
-  const [permState, setPermState] = useState('prompt'); // 'granted' | 'denied' | 'prompt'
+  const [permState, setPermState] = useState('prompt');
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
@@ -176,8 +173,6 @@ export function PriceAlertsModal({
       .then((res) => setPermState(res.display || 'prompt'))
       .catch(() => setPermState('granted'));
   }, [open]);
-
-  if (!open) return null;
 
   const termList = rates?.[terminal]?.list || [];
   const selectedProd = termList.find((p) => p.key === metalKey) || termList[0];
@@ -202,7 +197,6 @@ export function PriceAlertsModal({
     }
     setSaving(true);
     try {
-      // Request notification permission explicitly when user sets an alert
       if (permState !== 'granted') {
         await requestNotifPermission();
       }
@@ -221,20 +215,9 @@ export function PriceAlertsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl border border-[#D4AF37]/30 bg-white dark:bg-[#111520] p-5 shadow-2xl max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[#9A7422] dark:text-[#E6CB94]">
-            <Bell className="h-5 w-5" />
-            <h3 className="text-base font-bold">Live Price Alerts</h3>
-          </div>
-          <button onClick={onClose} className="rounded-full p-1.5 text-zinc-400 hover:text-white">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* Notification Permission Status Banner */}
-        <div className="mt-3 flex items-center justify-between rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#090B10] px-3 py-2 text-xs">
+    <BottomSheetModal open={open} onClose={onClose} title="Live Price Alerts" icon={Bell}>
+      <div className="space-y-3.5">
+        <div className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#07090F] px-3 py-2 text-xs">
           {permState === 'granted' ? (
             <span className="flex items-center gap-1.5 text-emerald-500 font-semibold">
               <CheckCircle2 className="h-4 w-4" />
@@ -249,7 +232,7 @@ export function PriceAlertsModal({
               <button
                 type="button"
                 onClick={requestNotifPermission}
-                className="rounded-lg bg-[#D4AF37] px-2.5 py-1 text-[11px] font-bold text-[#090B10]"
+                className="rounded-lg bg-[#D4AF37] px-2.5 py-1 text-[11px] font-bold text-[#07090F]"
               >
                 Enable
               </button>
@@ -257,67 +240,65 @@ export function PriceAlertsModal({
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-3 space-y-2.5">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {errorMsg && <p className="text-xs text-red-400">{errorMsg}</p>}
           <div className="grid grid-cols-2 gap-2">
-            <select
+            <LuxurySelect
+              label="Terminal"
               value={terminal}
-              onChange={(e) => setTerminal(e.target.value)}
-              className="rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#090B10] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
-            >
-              <option value="HB">Jodhpur Rates</option>
-              <option value="MOSUN">Sujangarh Rates</option>
-              <option value="IBJA">IBJA Rates</option>
-            </select>
-            <select
+              onChange={setTerminal}
+              options={[
+                { value: 'HB', label: 'Jodhpur Rates' },
+                { value: 'MOSUN', label: 'Sujangarh Rates' },
+                { value: 'IBJA', label: 'IBJA Rates' },
+              ]}
+            />
+            <LuxurySelect
+              label="Product"
               value={selectedProd?.key || metalKey}
-              onChange={(e) => setMetalKey(e.target.value)}
-              className="rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#090B10] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
-            >
-              {termList.map((p) => (
-                <option key={p.key} value={p.key}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <select
-              value={condition}
-              onChange={(e) => setCondition(e.target.value)}
-              className="rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#090B10] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
-            >
-              <option value="BELOW">Drops Below (≤)</option>
-              <option value="ABOVE">Rises Above (≥)</option>
-            </select>
-            <input
-              type="number"
-              placeholder={currentAsk ? `e.g. ${Math.round(currentAsk)}` : 'Target ₹'}
-              value={targetAsk}
-              onChange={(e) => setTargetAsk(e.target.value)}
-              className="rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#090B10] px-3 py-2 text-xs font-mono text-zinc-900 dark:text-zinc-100"
+              onChange={setMetalKey}
+              options={termList.map((p) => ({ value: p.key, label: p.name }))}
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-[#090B10]"
-          >
+          <div className="grid grid-cols-2 gap-2">
+            <LuxurySelect
+              label="Condition"
+              value={condition}
+              onChange={setCondition}
+              options={[
+                { value: 'BELOW', label: 'Drops Below (≤)' },
+                { value: 'ABOVE', label: 'Rises Above (≥)' },
+              ]}
+            />
+            <div>
+              <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
+                Target Ask ₹
+              </label>
+              <input
+                type="number"
+                placeholder={currentAsk ? `e.g. ${Math.round(currentAsk)}` : 'Target ₹'}
+                value={targetAsk}
+                onChange={(e) => setTargetAsk(e.target.value)}
+                className="font-mono-price w-full rounded-xl border border-zinc-200 dark:border-[#D4AF37]/30 bg-zinc-50 dark:bg-[#07090F] px-3 py-2.5 text-xs font-bold text-zinc-900 dark:text-zinc-100"
+              />
+            </div>
+          </div>
+
+          <ShimmerButton type="submit" disabled={saving} className="w-full py-3">
             <Plus className="h-3.5 w-3.5" />
             {saving ? 'Saving Alert...' : 'Set Price Alert'}
-          </button>
+          </ShimmerButton>
         </form>
 
-        <div className="mt-4 flex-1 overflow-y-auto space-y-2">
+        <div className="space-y-2 pt-2">
           {alerts.length === 0 ? (
-            <p className="py-4 text-center text-xs text-zinc-500">No active price alerts yet.</p>
+            <p className="py-3 text-center text-xs text-zinc-500">No active price alerts yet.</p>
           ) : (
             alerts.map((a) => (
               <div
                 key={a.id}
-                className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#181D2B] px-3 py-2.5 text-xs"
+                className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#07090F] px-3.5 py-2.5 text-xs"
               >
                 <div>
                   <div className="font-bold text-zinc-900 dark:text-zinc-100">
@@ -328,7 +309,7 @@ export function PriceAlertsModal({
                       : 'IBJA'}{' '}
                     • {a.metal_key}
                   </div>
-                  <div className="text-[11px] text-[#9A7422] dark:text-[#E6CB94] font-mono">
+                  <div className="font-mono-price text-[11px] text-[#9A7422] dark:text-[#E6CB94]">
                     {a.condition === 'BELOW' ? '≤' : '≥'} {formatINR(a.target_ask)}
                   </div>
                 </div>
@@ -344,6 +325,6 @@ export function PriceAlertsModal({
           )}
         </div>
       </div>
-    </div>
+    </BottomSheetModal>
   );
 }

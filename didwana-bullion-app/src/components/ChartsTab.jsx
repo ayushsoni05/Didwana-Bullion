@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { pricesApi } from '../services/api';
+import { LuxurySelect } from './ui/LuxurySelect';
 
 const RANGES = ['LIVE', '1D', '1W', '1M', '1Y'];
 const METALS = [
-  { id: 'gold995', label: 'Gold 995 (10g)' },
-  { id: 'gold916', label: '22K 916 (10g)' },
-  { id: 'silverPeti', label: 'Silver (1KG)' },
+  { value: 'gold995', label: 'Gold 995 (10g)', hint: '24K Bullion Benchmark' },
+  { value: 'gold916', label: '22K 916 (10g)', hint: 'BIS Hallmark Jewellery' },
+  { value: 'silverPeti', label: 'Silver Bank Peti (1KG)', hint: 'Fine Silver Bar' },
 ];
 
 function formatShortTime(iso, range) {
@@ -151,64 +152,61 @@ export default function ChartsTab({
   const activePoint = series[activeIndex] || {};
   const activeNode = hbPoints[activeIndex] || { x: W, y: H / 2 };
 
+  const spot = rates?.spot || {};
+  const intlParityGold10g =
+    spot.xauUsd && spot.usdInr ? Math.round(((spot.xauUsd * spot.usdInr) / 31.1035) * 10) : null;
+
   return (
-    <div className="space-y-5 pb-28">
-      {/* Behance Hero Price Header */}
+    <div className="space-y-4 pb-28">
+      {/* Editorial Price Header */}
       <div className="flex items-start justify-between px-1">
         <div>
           <div className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
-            <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-            Live Price • Jodhpur
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            Price Trends • Jodhpur
           </div>
-          <div className="mt-1 font-mono tabular-nums text-3xl font-extrabold text-zinc-900 dark:text-[#EDEDED]">
+          <div className="font-mono-price mt-1 text-3xl font-extrabold text-zinc-900 dark:text-[#E6CB94]">
             ₹{Math.round(activePoint.HB || 0).toLocaleString('en-IN')}
           </div>
-          <div className="mt-1 flex items-center gap-2 text-[11px] text-zinc-500">
+          <div className="font-mono-price mt-1 flex items-center gap-2 text-[11px] text-zinc-500">
             <span>Sujangarh: ₹{Math.round(activePoint.MOSUN || 0).toLocaleString('en-IN')}</span>
             <span>•</span>
             <span>IBJA: ₹{Math.round(activePoint.IBJA || 0).toLocaleString('en-IN')}</span>
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-2">
-          <span className="rounded-full bg-[#E8C97A] px-2.5 py-0.5 text-[10px] font-bold text-[#111111]">
-            24K • 999
-          </span>
-          <button
-            type="button"
-            onClick={() => loadHistory(range)}
-            className="rounded-full border border-zinc-200 dark:border-[#C5A358]/30 p-1.5 text-zinc-500 dark:text-[#E8C97A]"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => loadHistory(range)}
+          className="rounded-xl border border-zinc-200 dark:border-[#D4AF37]/30 bg-white dark:bg-[#10141F] p-2 text-zinc-500 dark:text-[#E6CB94]"
+        >
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+        </button>
       </div>
 
-      {/* Metal Selector */}
-      <div className="grid grid-cols-3 gap-2">
-        {METALS.map((m) => (
-          <button
-            key={m.id}
-            type="button"
-            onClick={() => {
-              setMetal(m.id);
-              setHoverIdx(null);
-            }}
-            className={`rounded-full py-2 px-2 text-[11px] font-bold transition ${
-              metal === m.id
-                ? 'bg-gradient-to-r from-[#E8C97A] to-[#C9A452] text-[#111111]'
-                : 'border border-zinc-200 dark:border-[#C5A358]/25 bg-white dark:bg-[#161616] text-zinc-600 dark:text-zinc-400'
-            }`}
-          >
-            {m.label}
-          </button>
-        ))}
-      </div>
+      {/* Custom LuxurySelect Dropdown */}
+      <LuxurySelect
+        label="Select Bullion Contract"
+        value={metal}
+        onChange={(val) => {
+          setMetal(val);
+          setHoverIdx(null);
+        }}
+        options={METALS}
+      />
 
-      {/* Borderless Behance Spline Area Curve */}
-      <div className="relative pt-6">
-        <div className="mb-2 flex justify-end px-1">
-          <div className="rounded-full bg-gradient-to-r from-[#E8C97A] to-[#C9A452] px-3 py-1 text-[10px] font-bold text-[#111111] tabular-nums shadow">
+      {/* Interactive Chart Card */}
+      <div className="rounded-3xl border border-zinc-200 dark:border-[#D4AF37]/20 bg-white dark:bg-[#10141F] p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-3 text-[10px] font-bold">
+            <span className="flex items-center gap-1 text-[#9A7422] dark:text-[#E6CB94]">
+              <span className="h-2 w-2 rounded-full bg-[#D4AF37]" /> Jodhpur
+            </span>
+            <span className="flex items-center gap-1 text-sky-600 dark:text-sky-300">
+              <span className="h-2 w-2 rounded-full bg-sky-400" /> Sujangarh
+            </span>
+          </div>
+          <div className="font-mono-price rounded-full bg-[#D4AF37] px-3 py-0.5 text-[10px] font-bold text-[#07090F]">
             {activePoint.label || range} • ₹{Math.round(activePoint.HB || 0).toLocaleString('en-IN')}
           </div>
         </div>
@@ -219,21 +217,21 @@ export default function ChartsTab({
           onPointerDown={(e) => handlePointer(e.clientX)}
           onPointerLeave={() => setHoverIdx(null)}
         >
-          <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="h-52 w-full overflow-visible">
+          <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="h-48 w-full overflow-visible">
             <defs>
-              <linearGradient id="behanceGoldArea" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#E8C97A" stopOpacity="0.32" />
-                <stop offset="100%" stopColor="#E8C97A" stopOpacity="0.0" />
+              <linearGradient id="richGoldArea" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.32" />
+                <stop offset="100%" stopColor="#D4AF37" stopOpacity="0.0" />
               </linearGradient>
             </defs>
 
             {hbPoints.length > 0 && (
-              <polygon fill="url(#behanceGoldArea)" points={toArea(hbPoints)} />
+              <polygon fill="url(#richGoldArea)" points={toArea(hbPoints)} />
             )}
 
             <polyline
               fill="none"
-              stroke="#E8C97A"
+              stroke="#D4AF37"
               strokeWidth="2.2"
               strokeLinejoin="round"
               points={toPolyline(hbPoints)}
@@ -241,26 +239,26 @@ export default function ChartsTab({
             <polyline
               fill="none"
               stroke="#38BDF8"
-              strokeWidth="1.4"
-              strokeOpacity="0.7"
+              strokeWidth="1.5"
+              strokeOpacity="0.75"
               strokeLinejoin="round"
               points={toPolyline(mosunPoints)}
             />
 
             {series.length > 0 && (
               <>
-                <circle cx={activeNode.x} cy={activeNode.y} r="8" fill="#E8C97A" fillOpacity="0.28" />
-                <circle cx={activeNode.x} cy={activeNode.y} r="3.5" fill="#FFFFFF" stroke="#E8C97A" strokeWidth="2" />
+                <circle cx={activeNode.x} cy={activeNode.y} r="8" fill="#D4AF37" fillOpacity="0.28" />
+                <circle cx={activeNode.x} cy={activeNode.y} r="3.5" fill="#FFFFFF" stroke="#D4AF37" strokeWidth="2" />
               </>
             )}
           </svg>
         </div>
 
-        {/* Dotted Track Timeframe Selector */}
-        <div className="relative mt-5 flex items-center justify-between px-1">
+        {/* Dotted Track Timeframe Pills */}
+        <div className="relative mt-4 flex items-center justify-between">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-4 top-1/2 -translate-y-1/2 border-t border-dotted border-[#C5A358]/40"
+            className="pointer-events-none absolute inset-x-4 top-1/2 -translate-y-1/2 border-t border-dotted border-[#D4AF37]/40"
           />
           {RANGES.map((r) => {
             const active = range === r;
@@ -275,8 +273,8 @@ export default function ChartsTab({
                 }}
                 className={`relative z-10 rounded-full px-3.5 py-1 text-[11px] font-bold transition ${
                   active
-                    ? 'bg-gradient-to-r from-[#E8C97A] to-[#C9A452] text-[#111111] shadow'
-                    : 'border border-[#C5A358]/40 bg-[#F8F6F1] dark:bg-[#0A0A0A] text-zinc-600 dark:text-[#C5A358]'
+                    ? 'bg-gradient-to-r from-[#E6CB94] to-[#C9A452] text-[#07090F] shadow'
+                    : 'border border-[#D4AF37]/35 bg-white dark:bg-[#07090F] text-zinc-600 dark:text-[#D4AF37]'
                 }`}
               >
                 {r}
@@ -286,27 +284,43 @@ export default function ChartsTab({
         </div>
       </div>
 
-      {/* High / Low Summary Row */}
-      <div className="grid grid-cols-3 gap-2 pt-2">
-        <div className="rounded-2xl border border-zinc-200 dark:border-[#C5A358]/20 bg-white dark:bg-[#161616] p-3 text-center">
+      {/* Stats + International Parity */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-3 text-center">
           <div className="text-[10px] uppercase text-zinc-500">Low</div>
-          <div className="mt-0.5 font-mono tabular-nums text-xs font-bold text-zinc-900 dark:text-[#EDEDED]">
+          <div className="font-mono-price mt-0.5 text-xs font-bold text-zinc-900 dark:text-zinc-100">
             ₹{stats.rawMin.toLocaleString('en-IN')}
           </div>
         </div>
-        <div className="rounded-2xl border border-zinc-200 dark:border-[#C5A358]/20 bg-white dark:bg-[#161616] p-3 text-center">
+        <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-3 text-center">
           <div className="text-[10px] uppercase text-zinc-500">Avg</div>
-          <div className="mt-0.5 font-mono tabular-nums text-xs font-bold text-[#8C6A2E] dark:text-[#E8C97A]">
+          <div className="font-mono-price mt-0.5 text-xs font-bold text-[#9A7422] dark:text-[#E6CB94]">
             ₹{stats.avg.toLocaleString('en-IN')}
           </div>
         </div>
-        <div className="rounded-2xl border border-zinc-200 dark:border-[#C5A358]/20 bg-white dark:bg-[#161616] p-3 text-center">
+        <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-3 text-center">
           <div className="text-[10px] uppercase text-zinc-500">High</div>
-          <div className="mt-0.5 font-mono tabular-nums text-xs font-bold text-zinc-900 dark:text-[#EDEDED]">
+          <div className="font-mono-price mt-0.5 text-xs font-bold text-zinc-900 dark:text-zinc-100">
             ₹{stats.rawMax.toLocaleString('en-IN')}
           </div>
         </div>
       </div>
+
+      {intlParityGold10g && (
+        <div className="rounded-2xl border border-zinc-200 dark:border-[#D4AF37]/20 bg-white dark:bg-[#10141F] p-4 flex items-center justify-between">
+          <div>
+            <div className="font-serif-luxury text-sm font-bold text-zinc-900 dark:text-[#E6CB94]">
+              Intl Spot Parity (Ex-Duty 10g)
+            </div>
+            <div className="text-[11px] text-zinc-500">
+              XAU (${spot.xauUsd}) × USD/INR (₹{spot.usdInr})
+            </div>
+          </div>
+          <div className="font-mono-price text-base font-extrabold text-zinc-900 dark:text-zinc-100">
+            ₹{intlParityGold10g.toLocaleString('en-IN')}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

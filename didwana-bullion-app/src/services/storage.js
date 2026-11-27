@@ -20,10 +20,11 @@ const DEFAULT_COOKIE_PREFS = {
 
 const DEFAULT_FUNCTIONAL_PREFS = {
   tickAudio: false,
-  defaultTerminal: 'ALL',
+  defaultTerminal: 'HB',
   chartRange: 'LIVE',
   theme: 'dark', // 'dark' | 'light' | 'system'
-  heroPin: { terminal: 'HB', metal: 'gold995' },
+  unit: '10g', // '10g' | '1g' | 'tola'
+  watchlist: ['HB:gold995', 'MOSUN:gold995_rtgs', 'HB:silverPeti'],
 };
 
 function safeGet(storage, key) {

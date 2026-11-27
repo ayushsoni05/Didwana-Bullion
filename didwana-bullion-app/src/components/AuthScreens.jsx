@@ -33,7 +33,7 @@ function evaluatePassword(password) {
 }
 
 export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
-  const [mode, setMode] = useState('signin'); // 'signin' | 'signup' | 'forgot'
+  const [mode, setMode] = useState('signin');
   const [loading, setLoading] = useState(false);
   const [slowWakeMsg, setSlowWakeMsg] = useState(false);
   const [error, setError] = useState('');
@@ -189,33 +189,33 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#090B10] px-5 py-8 flex flex-col justify-center safe-top safe-bottom">
-      {/* Subtle Ambient Gold Glow */}
+    <div className="relative min-h-screen overflow-hidden bg-[#07090F] px-5 py-8 flex flex-col justify-center safe-top safe-bottom">
+      {/* Ambient Metallic Halo */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-24 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full opacity-25"
+        className="pointer-events-none absolute -top-28 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full opacity-30"
         style={{
-          background: 'radial-gradient(circle, rgba(212,175,55,0.28) 0%, rgba(9,11,16,0) 70%)',
+          background: 'radial-gradient(circle, rgba(212,175,55,0.28) 0%, rgba(7,9,15,0) 70%)',
         }}
       />
 
       <div className="relative z-10 mx-auto w-full max-w-md">
-        {/* Institutional Header */}
+        {/* Editorial Serif Header */}
         <div className="mb-6 flex flex-col items-center text-center">
-          <GoldCrest size={58} />
-          <h1 className="mt-3.5 text-xl font-bold tracking-[0.16em] text-[#E6CB94] uppercase">
+          <GoldCrest size={62} />
+          <h1 className="font-serif-luxury mt-4 text-2xl font-bold tracking-wide text-[#E6CB94]">
             {mode === 'signin'
-              ? 'Terminal Sign In'
+              ? 'Welcome Back'
               : mode === 'signup'
-              ? 'Create Account'
-              : 'Reset Password'}
+              ? 'Join Didwana Bullion'
+              : 'Account Recovery'}
           </h1>
-          <p className="mt-1 text-[11px] tracking-[0.2em] text-zinc-400 uppercase">
-            {APP_INFO.name} • {APP_INFO.tagline}
+          <p className="mt-1 text-[11px] font-semibold tracking-[0.22em] text-zinc-400 uppercase">
+            {APP_INFO.tagline} • Station Road
           </p>
         </div>
 
-        {/* Sleek Dark Glassmorphic Card (No Cheap Yellow Block) */}
+        {/* Layered Glassmorphic Card */}
         <AnimatePresence mode="wait">
           <motion.div
             key={mode}
@@ -223,8 +223,13 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="rounded-2xl border border-[#D4AF37]/20 bg-[#111520]/95 p-6 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.85)]"
+            className="relative overflow-hidden rounded-3xl border border-[#D4AF37]/25 bg-[#10141F]/95 p-6 shadow-[0_24px_64px_-16px_rgba(0,0,0,0.9)]"
           >
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#E6CB94]/60 to-transparent"
+            />
+
             {mode === 'forgot' && (
               <button
                 type="button"
@@ -253,7 +258,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
             {mode === 'signin' && (
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
                     Email or Mobile Number
                   </label>
                   <div className="relative">
@@ -264,13 +269,13 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                       onChange={(e) => setIdentifier(e.target.value)}
                       placeholder="you@example.com or 9521014851"
                       autoComplete="username"
-                      className="w-full rounded-xl border border-white/10 bg-[#090B10] py-2.5 pl-10 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-10 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
                     Password
                   </label>
                   <div className="relative">
@@ -281,7 +286,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
                       autoComplete="current-password"
-                      className="w-full rounded-xl border border-white/10 bg-[#090B10] py-2.5 pl-10 pr-10 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-10 pr-10 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
                     />
                     <button
                       type="button"
@@ -300,7 +305,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="h-4 w-4 rounded border-white/20 bg-[#090B10] accent-[#D4AF37]"
+                      className="h-4 w-4 rounded border-white/20 bg-[#07090F] accent-[#D4AF37]"
                     />
                     Remember Me
                   </label>
@@ -319,7 +324,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                       ? slowWakeMsg
                         ? 'Waking Secure Server...'
                         : 'Signing In...'
-                      : 'Sign In to Live Terminals'}
+                      : 'Access Live Terminals'}
                   </span>
                   <ArrowRight className="h-4 w-4" />
                 </ShimmerButton>
@@ -340,7 +345,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
             {mode === 'signup' && (
               <form onSubmit={handleSignUp} className="space-y-3.5">
                 <div>
-                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
                     Full Name
                   </label>
                   <div className="relative">
@@ -350,13 +355,13 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Your full name"
-                      className="w-full rounded-xl border border-white/10 bg-[#090B10] py-2.5 pl-10 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-10 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
                     Email Address
                   </label>
                   <div className="relative">
@@ -366,13 +371,13 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@example.com"
-                      className="w-full rounded-xl border border-white/10 bg-[#090B10] py-2.5 pl-10 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-10 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
                     Mobile Number (+91)
                   </label>
                   <div className="relative flex items-center">
@@ -384,13 +389,13 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                       placeholder="9521014851"
-                      className="w-full rounded-xl border border-white/10 bg-[#090B10] py-2.5 pl-18 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-18 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
                     Password
                   </label>
                   <div className="relative">
@@ -400,7 +405,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Min 8 chars, A-Z, a-z, 0-9, !@#$"
-                      className="w-full rounded-xl border border-white/10 bg-[#090B10] py-2.5 pl-10 pr-10 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-10 pr-10 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
                     />
                     <button
                       type="button"
@@ -432,7 +437,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -442,7 +447,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Re-enter password"
-                      className="w-full rounded-xl border border-white/10 bg-[#090B10] py-2.5 pl-10 pr-10 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-10 pr-10 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
                     />
                     <button
                       type="button"
@@ -459,7 +464,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                     type="checkbox"
                     checked={acceptedLegal}
                     onChange={(e) => setAcceptedLegal(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-[#090B10] accent-[#D4AF37]"
+                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-[#07090F] accent-[#D4AF37]"
                   />
                   <span>
                     I accept{' '}
@@ -490,7 +495,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                 </ShimmerButton>
 
                 <div className="pt-1 text-center text-xs text-zinc-400">
-                  Already have an account?{' '}
+                  Already registered?{' '}
                   <button
                     type="button"
                     onClick={() => switchMode('signin')}
@@ -512,7 +517,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full rounded-xl border border-white/10 bg-[#090B10] px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                  className="w-full rounded-xl border border-white/10 bg-[#07090F] px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
                 />
                 <ShimmerButton type="submit" disabled={loading} className="w-full py-3">
                   {loading ? 'Sending...' : 'Send Reset Link'}

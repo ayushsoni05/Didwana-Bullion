@@ -21,16 +21,16 @@ export function LegalDocumentModal({ docType, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#111111] safe-top safe-bottom">
-      <header className="flex items-center justify-between border-b border-white/10 px-4 py-3.5 bg-[#161616]">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#F6F7F9] dark:bg-[#07090F] safe-top safe-bottom">
+      <header className="flex items-center justify-between border-b border-zinc-200 dark:border-white/10 px-4 py-3.5 bg-white dark:bg-[#10141F]">
         <button
           onClick={onClose}
-          className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-[#B59A6C] active:bg-white/5"
+          className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-semibold text-[#9A7422] dark:text-[#D4AF37]"
         >
           <ChevronLeft className="h-4 w-4" />
           Back
         </button>
-        <h2 className="text-sm font-semibold tracking-wide text-zinc-100">
+        <h2 className="font-serif-luxury text-base font-bold tracking-wide text-zinc-900 dark:text-[#E6CB94]">
           {titles[docType]}
         </h2>
         <button
@@ -42,12 +42,12 @@ export function LegalDocumentModal({ docType, onClose }) {
         </button>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-5 py-5 text-sm leading-relaxed text-zinc-300 space-y-5">
-        <div className="rounded-xl border border-[#B59A6C]/25 bg-[#B59A6C]/5 p-3.5 text-xs text-zinc-300">
-          <div className="font-semibold text-[#E5C99B]">
+      <div className="flex-1 overflow-y-auto px-5 py-5 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 space-y-5">
+        <div className="rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/10 p-3.5 text-xs">
+          <div className="font-bold text-[#9A7422] dark:text-[#E6CB94]">
             {APP_INFO.name} ({APP_INFO.tagline})
           </div>
-          <div className="mt-1 text-zinc-400">
+          <div className="mt-1 text-zinc-500 dark:text-zinc-400">
             {APP_INFO.address} • Version {APP_INFO.legalVersion}
           </div>
         </div>

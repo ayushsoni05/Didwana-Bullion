@@ -31,7 +31,9 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState('rates');
   const [prefs, setPrefs] = useState(() => consentStorage.getFunctionalPrefs());
-  const [activeTerminal, setActiveTerminal] = useState(() => prefs.defaultTerminal || 'ALL');
+  const [activeTerminal, setActiveTerminal] = useState(() =>
+    prefs.defaultTerminal === 'ALL' ? 'HB' : prefs.defaultTerminal || 'HB'
+  );
 
   const [cookiePrefs, setCookiePrefs] = useState(() => consentStorage.getCookiePrefs());
   const [showCookieModal, setShowCookieModal] = useState(false);
@@ -259,6 +261,14 @@ export default function App() {
     if (partial.defaultTerminal) setActiveTerminal(partial.defaultTerminal);
   };
 
+  const handleToggleWatchlist = (watchKey) => {
+    const current = prefs.watchlist || [];
+    const next = current.includes(watchKey)
+      ? current.filter((k) => k !== watchKey)
+      : [...current, watchKey];
+    handleUpdatePrefs({ watchlist: next });
+  };
+
   const handleSaveCookiePrefs = (functionalEnabled) => {
     const next = consentStorage.saveCookiePrefs(functionalEnabled);
     setCookiePrefs(next);
@@ -386,7 +396,7 @@ export default function App() {
             </button>
 
             <div className="flex flex-col items-center text-center">
-              <h1 className="text-sm font-bold tracking-[0.16em] text-[#8C6A2E] dark:text-[#E8C97A] uppercase">
+              <h1 className="font-serif-luxury text-base font-bold tracking-wide text-[#9A7422] dark:text-[#E6CB94]">
                 {APP_INFO.name}
               </h1>
               <p className="text-[9px] tracking-[0.2em] text-zinc-500 uppercase">
@@ -446,6 +456,10 @@ export default function App() {
                 setAlertPreset(preset || null);
                 setShowAlerts(true);
               }}
+              unit={prefs.unit || '10g'}
+              onUnitChange={(unit) => handleUpdatePrefs({ unit })}
+              watchlist={prefs.watchlist || []}
+              onToggleWatchlist={handleToggleWatchlist}
             />
           )}
 

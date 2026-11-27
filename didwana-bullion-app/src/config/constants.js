@@ -13,6 +13,8 @@ export const APP_INFO = {
   contactPhone: '+91 9521014851',
   packageId: 'com.didwanabullion.app',
   legalVersion: '1.0.0',
+  appVersion: '8.0.0',
+  githubRepo: 'ayushsoni05/Didwana-Bullion',
 };
 
 export const TERMINALS = [

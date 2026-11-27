@@ -267,7 +267,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                       type="text"
                       value={identifier}
                       onChange={(e) => setIdentifier(e.target.value)}
-                      placeholder="you@example.com or 9521014851"
+                      placeholder="you@example.com or 9351214851"
                       autoComplete="username"
                       className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-10 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
                     />
@@ -388,7 +388,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                       maxLength={10}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      placeholder="9521014851"
+                      placeholder="9351214851"
                       className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-18 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
                     />
                   </div>

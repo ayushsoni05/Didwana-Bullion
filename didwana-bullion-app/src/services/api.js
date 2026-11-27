@@ -209,6 +209,110 @@ export const authApi = {
   async deleteAccount() {
     return request('/api/auth/me', { method: 'DELETE' }, AUTH_BASE_URL);
   },
+
+  async sendTelemetry(payload) {
+    return request('/api/auth/telemetry', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }, AUTH_BASE_URL);
+  },
+
+  async getNotices() {
+    return request('/api/auth/notices', { method: 'GET' }, AUTH_BASE_URL);
+  },
+
+  async markNoticeRead(id) {
+    return request(`/api/auth/notices/${encodeURIComponent(id)}/read`, {
+      method: 'POST',
+    }, AUTH_BASE_URL);
+  },
+};
+
+export const newsApi = {
+  async list({ category = 'ALL', search = '', limit = 50 } = {}) {
+    const qs = new URLSearchParams({ category, search, limit: String(limit) }).toString();
+    return request(`/api/news?${qs}`, { method: 'GET' }, AUTH_BASE_URL);
+  },
+  async getArticle(id) {
+    return request(`/api/news/${encodeURIComponent(id)}`, { method: 'GET' }, AUTH_BASE_URL);
+  },
+  async recordView(id) {
+    return request(`/api/news/${encodeURIComponent(id)}/view`, { method: 'POST' }, AUTH_BASE_URL).catch(() => null);
+  },
+};
+
+export const siteConfigApi = {
+  async getPublicConfig() {
+    return request('/api/public/config', { method: 'GET', timeout: 15000 }, AUTH_BASE_URL);
+  },
+};
+
+export const adminApi = {
+  async getOverview() {
+    return request('/api/admin/overview', { method: 'GET' }, AUTH_BASE_URL);
+  },
+  async getUsers({ q = '', role = 'ALL', status = 'ALL', limit = 150 } = {}) {
+    const qs = new URLSearchParams({ q, role, status, limit: String(limit) }).toString();
+    return request(`/api/admin/users?${qs}`, { method: 'GET' }, AUTH_BASE_URL);
+  },
+  async exportUsers() {
+    return request('/api/admin/users/export', { method: 'GET' }, AUTH_BASE_URL);
+  },
+  async getUserDossier(id) {
+    return request(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'GET' }, AUTH_BASE_URL);
+  },
+  async updateUser(id, payload) {
+    return request(`/api/admin/users/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }, AUTH_BASE_URL);
+  },
+  async revokeUserSessions(id) {
+    return request(`/api/admin/users/${encodeURIComponent(id)}/revoke-sessions`, {
+      method: 'POST',
+    }, AUTH_BASE_URL);
+  },
+  async sendNotice(payload) {
+    return request('/api/admin/notices', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }, AUTH_BASE_URL);
+  },
+  async listNews() {
+    return request('/api/admin/news', { method: 'GET' }, AUTH_BASE_URL);
+  },
+  async createNews(payload) {
+    return request('/api/admin/news', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }, AUTH_BASE_URL);
+  },
+  async updateNews(id, payload) {
+    return request(`/api/admin/news/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }, AUTH_BASE_URL);
+  },
+  async deleteNews(id) {
+    return request(`/api/admin/news/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }, AUTH_BASE_URL);
+  },
+  async getSiteConfig() {
+    return request('/api/admin/site-config', { method: 'GET' }, AUTH_BASE_URL);
+  },
+  async updateSiteConfig(payload) {
+    return request('/api/admin/site-config', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }, AUTH_BASE_URL);
+  },
+  async getAuditLogs() {
+    return request('/api/admin/audit-logs', { method: 'GET' }, AUTH_BASE_URL);
+  },
+  async getAllAlerts() {
+    return request('/api/admin/alerts', { method: 'GET' }, AUTH_BASE_URL);
+  },
 };
 
 export const alertsApi = {
@@ -723,4 +827,42 @@ export function normalizeBullionPayload(raw) {
   };
 
   return { timestamp: now, HB, MOSUN, IBJA, spot };
+}
+
+export function applySiteRateOffsets(norm, siteConfig) {
+  if (!norm || !siteConfig) return norm;
+  const hbGoldOff = Number(siteConfig.hbGoldOffset || 0);
+  const hbSilverOff = Number(siteConfig.hbSilverOffset || 0);
+  const mosunGoldOff = Number(siteConfig.mosunGoldOffset || 0);
+  const mosunSilverOff = Number(siteConfig.mosunSilverOffset || 0);
+  const ibjaGoldOff = Number(siteConfig.ibjaGoldOffset || 0);
+
+  if (!hbGoldOff && !hbSilverOff && !mosunGoldOff && !mosunSilverOff && !ibjaGoldOff) {
+    return norm;
+  }
+
+  const adjustTerm = (term, goldOff, silverOff) => {
+    if (!term?.list?.length) return term;
+    const list = term.list.map((item) => {
+      const off = item.metal === 'silver' ? silverOff : goldOff;
+      if (!off) return item;
+      return {
+        ...item,
+        bid: item.bid ? item.bid + off : item.bid,
+        ask: item.ask ? item.ask + off : item.ask,
+      };
+    });
+    return {
+      ...term,
+      list,
+      items: Object.fromEntries(list.map((i) => [i.key, i])),
+    };
+  };
+
+  return {
+    ...norm,
+    HB: adjustTerm(norm.HB, hbGoldOff, hbSilverOff),
+    MOSUN: adjustTerm(norm.MOSUN, mosunGoldOff, mosunSilverOff),
+    IBJA: adjustTerm(norm.IBJA, ibjaGoldOff, 0),
+  };
 }

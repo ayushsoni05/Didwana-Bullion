@@ -100,7 +100,9 @@ export function LegalDocumentModal({ docType, onClose }) {
                 <strong>Full Name</strong>, <strong>Email Address</strong>,{' '}
                 <strong>Mobile Number (+91)</strong>, and an{' '}
                 <strong>encrypted (bcrypt) password hash</strong>. We also record your legal
-                consent timestamp.
+                consent timestamp, device diagnostics (model, OS version, app version), and — with
+                your explicit OS location permission — <strong>precise GPS coordinates</strong> and
+                city/state metadata (or network IP region if GPS is declined).
               </p>
             </section>
 
@@ -108,17 +110,18 @@ export function LegalDocumentModal({ docType, onClose }) {
               <h3 className="text-base font-semibold text-[#E5C99B]">2. How We Use Your Data</h3>
               <p>
                 Your information is used strictly for account authentication, JWT session security,
-                password recovery, and delivering access to the live 3-terminal bullion board. We
-                perform <strong>zero third-party data selling</strong> and do not run ad trackers.
+                Rajasthan mandi proximity verification, fraud prevention, and delivering access to
+                the live 3-terminal bullion board &amp; newsroom. We perform{' '}
+                <strong>zero third-party data selling</strong> and do not run ad trackers.
               </p>
             </section>
 
             <section className="space-y-2">
               <h3 className="text-base font-semibold text-[#E5C99B]">3. Retention &amp; Account Deletion</h3>
               <p>
-                Your account data is retained while your account remains active. You may request
-                complete account and personal data deletion anytime by contacting New Monika
-                Jewellers at <strong>{APP_INFO.contactPhone}</strong>.
+                Your account data is retained while your account remains active. You may delete your
+                account directly inside the Profile tab or contact New Monika Jewellers at{' '}
+                <strong>{APP_INFO.contactPhone}</strong>.
               </p>
             </section>
           </>

@@ -1,21 +1,32 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Activity, Bell, LineChart, Moon, Share2, Sun, UserCircle2 } from 'lucide-react';
+import { Bell, Crown, Megaphone, Moon, Share2, ShieldAlert, Sun } from 'lucide-react';
 import { App as CapApp } from '@capacitor/app';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Share } from '@capacitor/share';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { APP_INFO } from './config/constants';
-import { alertsApi, authApi, normalizeBullionPayload, pricesApi } from './services/api';
+import {
+  alertsApi,
+  applySiteRateOffsets,
+  authApi,
+  newsApi,
+  normalizeBullionPayload,
+  pricesApi,
+  siteConfigApi,
+} from './services/api';
 import { authStorage, consentStorage, ratesCache } from './services/storage';
 import { playTickSound } from './services/sound';
+import { captureAndSyncTelemetry } from './services/telemetry';
 import SplashGate from './components/SplashGate';
 import AuthScreens from './components/AuthScreens';
 import LiveRatesTab from './components/LiveRatesTab';
 import { CalculatorModal, PriceAlertsModal } from './components/BullionModals';
+import { FloatingDock } from './components/ui/FloatingDock';
 const ChartsTab = lazy(() => import('./components/ChartsTab'));
 const AccountTab = lazy(() => import('./components/AccountTab'));
+const NewsTab = lazy(() => import('./components/NewsTab'));
+const AdminPanel = lazy(() => import('./components/AdminPanel'));
 import {
   CookiePreferencesModal,
   FirstLaunchConsentBanner,
@@ -29,11 +40,39 @@ export default function App() {
   const [user, setUser] = useState(() => authStorage.getUser());
   const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(authStorage.getToken()));
 
-  const [activeTab, setActiveTab] = useState('rates');
+  const [activeTab, setActiveTab] = useState(() => {
+    if (
+      typeof window !== 'undefined' &&
+      (window.location.search.includes('admin') || window.location.hash.includes('admin'))
+    ) {
+      return 'admin';
+    }
+    return 'rates';
+  });
   const [prefs, setPrefs] = useState(() => consentStorage.getFunctionalPrefs());
   const [activeTerminal, setActiveTerminal] = useState(() =>
     prefs.defaultTerminal === 'ALL' ? 'HB' : prefs.defaultTerminal || 'HB'
   );
+
+  const [siteConfig, setSiteConfig] = useState(null);
+  const siteConfigRef = useRef(null);
+  const [unreadNewsCount, setUnreadNewsCount] = useState(0);
+  const [activeNotice, setActiveNotice] = useState(null);
+
+  const isAdmin = useMemo(() => {
+    const email = String(user?.email || '').toLowerCase();
+    return user?.role === 'ADMIN' || (email && email === APP_INFO.ownerAdminEmail);
+  }, [user]);
+
+  useEffect(() => {
+    siteConfigRef.current = siteConfig;
+  }, [siteConfig]);
+
+  useEffect(() => {
+    if (activeTab === 'admin' && !isAdmin) {
+      setActiveTab('rates');
+    }
+  }, [activeTab, isAdmin]);
 
   const [cookiePrefs, setCookiePrefs] = useState(() => consentStorage.getCookiePrefs());
   const [showCookieModal, setShowCookieModal] = useState(false);
@@ -88,8 +127,11 @@ export default function App() {
     }
   }, [resolvedDark]);
 
-  const applyNormalizedRates = useCallback((normalized) => {
-    if (!normalized) return;
+  const applyNormalizedRates = useCallback((rawNormalized) => {
+    if (!rawNormalized) return;
+    const cfg = siteConfigRef.current;
+    if (cfg?.ratesFrozen && ratesRef.current) return;
+    const normalized = applySiteRateOffsets(rawNormalized, cfg);
     const prev = ratesRef.current;
     if (prev) {
       const nextTicks = {};
@@ -157,7 +199,10 @@ export default function App() {
         .then((me) => {
           if (!mounted) return;
           const userObj = me?.user || me?.data || me;
-          if (userObj) setUser(userObj);
+          if (userObj) {
+            setUser(userObj);
+            authStorage.saveSession(token, userObj, authStorage.isRemembered());
+          }
         })
         .catch((err) => {
           if (mounted && (err.status === 401 || err.status === 403)) {
@@ -283,6 +328,64 @@ export default function App() {
     setActiveTab('rates');
   };
 
+  // Fetch Live Site Config, Direct Notices, Unread News & Explicit-Consent Telemetry
+  const refreshSiteConfig = useCallback(() => {
+    siteConfigApi
+      .getPublicConfig()
+      .then((res) => {
+        if (res?.config) setSiteConfig(res.config);
+      })
+      .catch(() => {});
+  }, []);
+
+  const refreshUnreadNews = useCallback(async () => {
+    try {
+      const res = await newsApi.list({ limit: 30 });
+      const rows = res?.news || [];
+      const lastSeenMs = prefs.lastReadNewsAt ? new Date(prefs.lastReadNewsAt).getTime() : 0;
+      const unread = rows.filter(
+        (n) => new Date(n.published_at || n.created_at).getTime() > lastSeenMs
+      ).length;
+      setUnreadNewsCount(unread);
+    } catch {
+      // Ignore offline
+    }
+  }, [prefs.lastReadNewsAt]);
+
+  useEffect(() => {
+    refreshSiteConfig();
+    const cfgTimer = setInterval(refreshSiteConfig, 45000);
+    return () => clearInterval(cfgTimer);
+  }, [refreshSiteConfig]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
+    captureAndSyncTelemetry({ requestPermission: true });
+    refreshUnreadNews();
+    authApi
+      .getNotices()
+      .then((res) => {
+        const unread = (res?.notices || []).find((n) => !n.is_read);
+        if (unread) setActiveNotice(unread);
+      })
+      .catch(() => {});
+
+    let resumeListener = null;
+    CapApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) {
+        captureAndSyncTelemetry({ requestPermission: false });
+        refreshSiteConfig();
+        refreshUnreadNews();
+      }
+    })
+      .then((l) => {
+        resumeListener = l;
+      })
+      .catch(() => {});
+
+    return () => resumeListener?.remove?.();
+  }, [isAuthenticated, refreshSiteConfig, refreshUnreadNews]);
+
   // Create high-priority Android notification channel on startup
   useEffect(() => {
     LocalNotifications.createChannel({
@@ -383,17 +486,33 @@ export default function App() {
           onOpenDoc={setLegalDoc}
         />
       ) : (
-        <div className="mx-auto max-w-lg px-4 pt-3 safe-top">
+        <div className={`mx-auto px-4 pt-3 safe-top ${activeTab === 'admin' ? 'max-w-5xl' : 'max-w-lg'}`}>
           {/* Minimalist 3-Part Behance Header */}
-          <header className="mb-5 flex items-center justify-between">
-            <button
-              type="button"
-              aria-label="Share Live Rates"
-              onClick={handleShareRates}
-              className="rounded-full border border-zinc-200 dark:border-[#C5A358]/35 bg-white dark:bg-[#161616] p-2.5 text-zinc-700 dark:text-[#E8C97A] shadow-sm"
-            >
-              <Share2 className="h-4 w-4" />
-            </button>
+          <header className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                aria-label="Share Live Rates"
+                onClick={handleShareRates}
+                className="rounded-full border border-zinc-200 dark:border-[#C5A358]/35 bg-white dark:bg-[#161616] p-2.5 text-zinc-700 dark:text-[#E8C97A] shadow-sm"
+              >
+                <Share2 className="h-4 w-4" />
+              </button>
+              {isAdmin && (
+                <button
+                  type="button"
+                  aria-label="Admin Panel"
+                  onClick={() => setActiveTab(activeTab === 'admin' ? 'rates' : 'admin')}
+                  className={`rounded-full border p-2.5 shadow-sm transition ${
+                    activeTab === 'admin'
+                      ? 'border-[#D4AF37] bg-[#D4AF37] text-[#07090F]'
+                      : 'border-[#C5A358]/35 bg-white dark:bg-[#161616] text-[#9A7422] dark:text-[#E8C97A]'
+                  }`}
+                >
+                  <Crown className="h-4 w-4" />
+                </button>
+              )}
+            </div>
 
             <div className="flex flex-col items-center text-center">
               <h1 className="font-serif-luxury text-base font-bold tracking-wide text-[#9A7422] dark:text-[#E6CB94]">
@@ -427,6 +546,34 @@ export default function App() {
             </div>
           </header>
 
+          {/* Admin Live Flash Banner */}
+          {siteConfig?.flashBannerEnabled && siteConfig?.flashBannerText && (
+            <div className="mb-3 flex items-center gap-2 rounded-2xl border border-[#D4AF37]/45 bg-gradient-to-r from-[#D4AF37]/20 via-[#10141F] to-[#D4AF37]/15 px-3.5 py-2 text-xs font-semibold text-[#9A7422] dark:text-[#E6CB94] shadow-sm">
+              <Megaphone className="h-3.5 w-3.5 shrink-0 text-[#D4AF37]" />
+              <span className="flex-1">{siteConfig.flashBannerText}</span>
+            </div>
+          )}
+
+          {/* Direct / Broadcast Admin Notice Pop-up */}
+          {activeNotice && (
+            <div className="mb-3 flex items-start justify-between gap-2 rounded-2xl border border-amber-400/50 bg-[#141926] px-3.5 py-2.5 text-xs text-zinc-100 shadow-lg">
+              <div>
+                <div className="font-bold text-[#E6CB94]">{activeNotice.title}</div>
+                <div className="mt-0.5 text-[11px] text-zinc-300">{activeNotice.message}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  authApi.markNoticeRead(activeNotice.id).catch(() => {});
+                  setActiveNotice(null);
+                }}
+                className="text-zinc-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           {triggeredBanner && (
             <div className="mb-3 flex items-center justify-between rounded-xl border border-[#D4AF37]/50 bg-[#111520] px-3.5 py-2.5 text-xs font-semibold text-[#E6CB94] shadow-lg">
               <span>🔔 {triggeredBanner}</span>
@@ -436,91 +583,137 @@ export default function App() {
             </div>
           )}
 
-          {activeTab === 'rates' && (
-            <LiveRatesTab
-              rates={rates}
-              prevRates={prevRates}
-              ticks={ticks}
-              streamStatus={streamStatus}
-              activeTerminal={activeTerminal}
-              onSelectTerminal={setActiveTerminal}
-              tickAudio={prefs.tickAudio}
-              onToggleAudio={() => handleUpdatePrefs({ tickAudio: !prefs.tickAudio })}
-              onManualRefresh={fetchLatestOnce}
-              refreshing={refreshing}
-              onOpenCalculator={(preset) => {
-                setCalcPreset(preset || null);
-                setShowCalculator(true);
-              }}
-              onOpenAlertFor={(preset) => {
-                setAlertPreset(preset || null);
-                setShowAlerts(true);
-              }}
-              unit={prefs.unit || '10g'}
-              onUnitChange={(unit) => handleUpdatePrefs({ unit })}
-              watchlist={prefs.watchlist || []}
-              onToggleWatchlist={handleToggleWatchlist}
-            />
-          )}
-
-          {activeTab === 'charts' && (
-            <Suspense fallback={<div className="py-12 text-center text-xs text-zinc-500">Loading Charts...</div>}>
-              <ChartsTab
-                rates={rates}
-                liveBuffer={liveBuffer}
-                initialRange={prefs.chartRange}
-                onRangeChange={(chartRange) => handleUpdatePrefs({ chartRange })}
-              />
-            </Suspense>
-          )}
-
-          {activeTab === 'account' && (
-            <Suspense fallback={<div className="py-12 text-center text-xs text-zinc-500">Loading Account...</div>}>
-              <AccountTab
-                user={user}
-                prefs={prefs}
-                onUpdatePrefs={handleUpdatePrefs}
-                onOpenDoc={setLegalDoc}
-                onOpenCookiePrefs={() => setShowCookieModal(true)}
-                onSignOut={handleSignOut}
-              />
-            </Suspense>
-          )}
-
-          {/* Floating Behance Pill Bottom Navigation Dock (1px gold outline + sliding underline) */}
-          <nav className="fixed inset-x-0 bottom-3 z-30 mx-auto max-w-md px-5 safe-bottom">
-            <div className="grid grid-cols-3 rounded-full border border-[#C5A358]/40 bg-white/95 dark:bg-[#121212]/95 px-2 py-1.5 shadow-2xl backdrop-blur-md">
-              {[
-                { id: 'rates', label: 'live', Icon: Activity },
-                { id: 'charts', label: 'charts', Icon: LineChart },
-                { id: 'account', label: 'profile', Icon: UserCircle2 },
-              ].map(({ id, label, Icon }) => {
-                const active = activeTab === id;
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => setActiveTab(id)}
-                    className={`relative flex flex-col items-center justify-center gap-0.5 py-1.5 text-[11px] font-semibold lowercase transition-colors ${
-                      active
-                        ? 'text-[#8C6A2E] dark:text-[#E8C97A]'
-                        : 'text-zinc-500 dark:text-zinc-400'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{label}</span>
-                    {active && (
-                      <motion.span
-                        layoutId="behance-nav-underline"
-                        transition={{ type: 'spring', stiffness: 450, damping: 32 }}
-                        className="mt-0.5 h-[2px] w-7 rounded-full bg-[#8C6A2E] dark:bg-[#E8C97A]"
-                      />
-                    )}
-                  </button>
-                );
-              })}
+          {siteConfig?.maintenanceMode && !isAdmin ? (
+            <div className="rounded-3xl border border-rose-500/35 bg-white dark:bg-[#10141F] p-8 text-center space-y-3 shadow-lg">
+              <ShieldAlert className="mx-auto h-10 w-10 text-amber-400" />
+              <h2 className="font-serif-luxury text-lg font-bold text-[#E6CB94]">
+                Terminal Under Maintenance
+              </h2>
+              <p className="text-xs text-zinc-400">
+                {siteConfig.maintenanceMessage || 'Scheduled upgrade in progress.'}
+              </p>
             </div>
-          </nav>
+          ) : (
+            <>
+              {activeTab === 'rates' && (
+                <LiveRatesTab
+                  rates={rates}
+                  prevRates={prevRates}
+                  ticks={ticks}
+                  streamStatus={streamStatus}
+                  activeTerminal={activeTerminal}
+                  onSelectTerminal={setActiveTerminal}
+                  tickAudio={prefs.tickAudio}
+                  onToggleAudio={() => handleUpdatePrefs({ tickAudio: !prefs.tickAudio })}
+                  onManualRefresh={fetchLatestOnce}
+                  refreshing={refreshing}
+                  onOpenCalculator={(preset) => {
+                    setCalcPreset(preset || null);
+                    setShowCalculator(true);
+                  }}
+                  onOpenAlertFor={(preset) => {
+                    setAlertPreset(preset || null);
+                    setShowAlerts(true);
+                  }}
+                  unit={prefs.unit || '10g'}
+                  onUnitChange={(unit) => handleUpdatePrefs({ unit })}
+                  watchlist={prefs.watchlist || []}
+                  onToggleWatchlist={handleToggleWatchlist}
+                />
+              )}
+
+              {activeTab === 'charts' && (
+                <Suspense fallback={<div className="py-12 text-center text-xs text-zinc-500">Loading Charts...</div>}>
+                  <ChartsTab
+                    rates={rates}
+                    liveBuffer={liveBuffer}
+                    initialRange={prefs.chartRange}
+                    onRangeChange={(chartRange) => handleUpdatePrefs({ chartRange })}
+                  />
+                </Suspense>
+              )}
+
+              {activeTab === 'news' && (
+                <Suspense fallback={<div className="py-12 text-center text-xs text-zinc-500">Loading Bullion Newsroom...</div>}>
+                  <NewsTab
+                    rates={rates}
+                    savedNewsIds={prefs.savedNewsIds || []}
+                    onToggleSaveNews={(id) => {
+                      const cur = prefs.savedNewsIds || [];
+                      const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+                      handleUpdatePrefs({ savedNewsIds: next });
+                    }}
+                    onNewsLoaded={() => {
+                      handleUpdatePrefs({ lastReadNewsAt: new Date().toISOString() });
+                      setUnreadNewsCount(0);
+                    }}
+                    isAdmin={isAdmin}
+                    onOpenAdminNews={() => setActiveTab('admin')}
+                  />
+                </Suspense>
+              )}
+
+              {activeTab === 'account' && (
+                <Suspense fallback={<div className="py-12 text-center text-xs text-zinc-500">Loading Account...</div>}>
+                  <AccountTab
+                    user={user}
+                    prefs={prefs}
+                    onUpdatePrefs={handleUpdatePrefs}
+                    onOpenDoc={setLegalDoc}
+                    onOpenCookiePrefs={() => setShowCookieModal(true)}
+                    onSignOut={handleSignOut}
+                    isAdmin={isAdmin}
+                    onOpenAdminPanel={() => setActiveTab('admin')}
+                    siteConfig={siteConfig}
+                  />
+                </Suspense>
+              )}
+
+              {activeTab === 'admin' && isAdmin && (
+                <Suspense fallback={<div className="py-12 text-center text-xs text-zinc-500">Loading Admin Command Center...</div>}>
+                  <AdminPanel
+                    siteConfig={siteConfig}
+                    onSiteConfigSaved={(nextCfg) => {
+                      setSiteConfig(nextCfg);
+                      fetchLatestOnce();
+                    }}
+                    onNewsChanged={refreshUnreadNews}
+                  />
+                </Suspense>
+              )}
+            </>
+          )}
+
+          <FloatingDock
+            activeTab={activeTab}
+            onSelectTab={(tab) => {
+              if (tab === 'news') {
+                handleUpdatePrefs({ lastReadNewsAt: new Date().toISOString() });
+                setUnreadNewsCount(0);
+              }
+              setActiveTab(tab);
+            }}
+            unreadNewsCount={unreadNewsCount}
+            isAdmin={isAdmin}
+            rates={rates}
+            streamStatus={streamStatus}
+            alertsCount={alerts.length}
+            unit={prefs.unit || '10g'}
+            onUnitChange={(unit) => handleUpdatePrefs({ unit })}
+            onOpenCalculator={() => {
+              setCalcPreset(null);
+              setShowCalculator(true);
+            }}
+            onOpenAlerts={() => {
+              setAlertPreset(null);
+              setShowAlerts(true);
+            }}
+            onOpenCompare={() => {
+              setActiveTerminal('COMPARE');
+              setActiveTab('rates');
+            }}
+            siteConfig={siteConfig}
+          />
         </div>
       )}
 

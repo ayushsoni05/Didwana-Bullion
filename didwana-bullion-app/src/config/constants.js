@@ -10,11 +10,13 @@ export const APP_INFO = {
   name: 'Didwana Bullion',
   tagline: 'by New Monika Jewellers',
   address: 'Station Road, Didwana, Rajasthan - PIN 341303',
-  contactPhone: '+91 9521014851',
+  contactPhone: '+91 9351214851',
+  whatsappPhone: '919351214851',
   packageId: 'com.didwanabullion.app',
-  legalVersion: '1.0.0',
-  appVersion: '8.0.0',
+  legalVersion: '1.1.0',
+  appVersion: '9.0.0',
   githubRepo: 'ayushsoni05/Didwana-Bullion',
+  ownerAdminEmail: 'newmonikajewellers1999@gmail.com',
 };
 
 export const TERMINALS = [

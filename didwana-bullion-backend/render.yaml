@@ -22,5 +22,9 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 7d
+      - key: ADMIN_EMAIL
+        value: newmonikajewellers1999@gmail.com
+      - key: ADMIN_PHONE
+        value: "+919351214851"
       - key: RATES_UPSTREAM_URL
         value: https://glimmr-jewellry-e-commerce-platform-5.onrender.com

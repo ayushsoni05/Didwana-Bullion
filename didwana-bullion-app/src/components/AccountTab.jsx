@@ -18,6 +18,7 @@ import {
   ChevronUp,
   MessageCircle,
   RefreshCw,
+  Crown,
 } from 'lucide-react';
 import { APP_INFO } from '../config/constants';
 import { authApi } from '../services/api';
@@ -31,6 +32,9 @@ export default function AccountTab({
   onOpenDoc,
   onOpenCookiePrefs,
   onSignOut,
+  isAdmin = false,
+  onOpenAdminPanel,
+  siteConfig,
 }) {
   const [showChangePw, setShowChangePw] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -160,6 +164,32 @@ export default function AccountTab({
         </div>
       </div>
 
+      {/* Admin Command Center Quick Card */}
+      {isAdmin && (
+        <button
+          type="button"
+          onClick={onOpenAdminPanel}
+          className="flex w-full items-center justify-between rounded-2xl border border-[#D4AF37]/45 bg-gradient-to-r from-[#171C2B] to-[#0D111A] p-4 text-left shadow-md"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#D4AF37]/20 text-[#E6CB94]">
+              <Crown className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="font-serif-luxury text-sm font-bold text-[#E6CB94]">
+                Dedicated Admin Command Center
+              </div>
+              <div className="text-[11px] text-zinc-400">
+                Users, GPS Location, Newsroom CMS &amp; Live Website Controls
+              </div>
+            </div>
+          </div>
+          <span className="rounded-full bg-[#D4AF37] px-2.5 py-1 text-[10px] font-bold text-[#07090F]">
+            OPEN
+          </span>
+        </button>
+      )}
+
       {/* Showroom Desk (Call & WhatsApp like HB Jodhpur) */}
       <div className="rounded-2xl border border-zinc-200 dark:border-[#D4AF37]/20 bg-white dark:bg-[#10141F] p-4 space-y-3 shadow-sm">
         <h3 className="font-serif-luxury text-sm font-bold text-[#9A7422] dark:text-[#E6CB94]">
@@ -167,14 +197,14 @@ export default function AccountTab({
         </h3>
         <div className="grid grid-cols-2 gap-2">
           <a
-            href="tel:+919521014851"
+            href={`tel:${(siteConfig?.contactPhone || APP_INFO.contactPhone).replace(/\s+/g, '')}`}
             className="flex items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#07090F] py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200"
           >
             <Phone className="h-3.5 w-3.5 text-[#D4AF37]" />
             Call Desk
           </a>
           <a
-            href="https://wa.me/919521014851"
+            href={`https://wa.me/${String(siteConfig?.whatsappNumber || APP_INFO.whatsappPhone || '919351214851').replace(/\D/g, '')}`}
             target="_blank"
             rel="noreferrer"
             className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600/15 border border-emerald-500/30 py-2.5 text-xs font-bold text-emerald-600 dark:text-emerald-400"
@@ -185,7 +215,7 @@ export default function AccountTab({
         </div>
         <div className="flex items-start gap-2 text-[11px] text-zinc-500">
           <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#D4AF37]" />
-          <span>{APP_INFO.address}</span>
+          <span>{siteConfig?.showroomAddress || APP_INFO.address}</span>
         </div>
       </div>
 

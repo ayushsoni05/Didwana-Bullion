@@ -25,6 +25,8 @@ const DEFAULT_FUNCTIONAL_PREFS = {
   theme: 'dark', // 'dark' | 'light' | 'system'
   unit: '10g', // '10g' | '1g' | 'tola'
   watchlist: ['HB:gold995', 'MOSUN:gold995_rtgs', 'HB:silverPeti'],
+  savedNewsIds: [],
+  lastReadNewsAt: null,
 };
 
 function safeGet(storage, key) {

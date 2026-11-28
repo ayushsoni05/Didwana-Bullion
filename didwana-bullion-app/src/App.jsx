@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Bell, Crown, Megaphone, Moon, Share2, ShieldAlert, Sun } from 'lucide-react';
+import { Bell, Crown, Megaphone, Moon, Phone, Share2, ShieldAlert, Sun } from 'lucide-react';
 import { App as CapApp } from '@capacitor/app';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Share } from '@capacitor/share';
@@ -18,10 +18,10 @@ import {
 import { authStorage, consentStorage, ratesCache } from './services/storage';
 import { playTickSound } from './services/sound';
 import { captureAndSyncTelemetry } from './services/telemetry';
-import SplashGate from './components/SplashGate';
+import SplashGate, { GoldCrest } from './components/SplashGate';
 import AuthScreens from './components/AuthScreens';
 import LiveRatesTab from './components/LiveRatesTab';
-import { CalculatorModal, PriceAlertsModal } from './components/BullionModals';
+import { BankDetailsModal, CalculatorModal, PriceAlertsModal } from './components/BullionModals';
 import { FloatingDock } from './components/ui/FloatingDock';
 const ChartsTab = lazy(() => import('./components/ChartsTab'));
 const AccountTab = lazy(() => import('./components/AccountTab'));
@@ -80,6 +80,7 @@ export default function App() {
   const [showCalculator, setShowCalculator] = useState(false);
   const [calcPreset, setCalcPreset] = useState(null);
   const [showAlerts, setShowAlerts] = useState(false);
+  const [showBankDetails, setShowBankDetails] = useState(false);
   const [alertPreset, setAlertPreset] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [triggeredBanner, setTriggeredBanner] = useState(null);
@@ -120,7 +121,7 @@ export default function App() {
       root.classList.remove('dark');
     }
     try {
-      StatusBar.setBackgroundColor({ color: resolvedDark ? '#0B0B0D' : '#F8F6F1' });
+      StatusBar.setBackgroundColor({ color: resolvedDark ? '#0B0907' : '#F8F4EC' });
       StatusBar.setStyle({ style: resolvedDark ? Style.Dark : Style.Light });
     } catch {
       // Ignore on web
@@ -474,8 +475,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F6F1] dark:bg-[#0B0B0D] text-zinc-900 dark:text-[#F4EFE6] transition-colors duration-200">
-      {booting && <SplashGate fadingOut={fadingSplash} />}
+    <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#0B0907] text-zinc-900 dark:text-[#F5F2EB] transition-colors duration-200">
+      {booting && <SplashGate fadingOut={fadingSplash} rates={rates} />}
 
       {!isAuthenticated ? (
         <AuthScreens
@@ -486,63 +487,70 @@ export default function App() {
           onOpenDoc={setLegalDoc}
         />
       ) : (
-        <div className={`mx-auto px-4 pt-3 safe-top ${activeTab === 'admin' ? 'max-w-5xl' : 'max-w-lg'}`}>
-          {/* Minimalist 3-Part Behance Header */}
-          <header className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+        <div className={`mx-auto px-3.5 pt-2.5 safe-top ${activeTab === 'admin' ? 'max-w-5xl' : 'max-w-lg'}`}>
+          {/* Authentic HB & Mosun Smoked Bronze Top Bar */}
+          <header className="mb-3 flex items-center justify-between rounded-2xl border border-[#3D2E1A] bg-[#15100B] px-3 py-2 shadow-md">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <GoldCrest size={34} />
+              <div className="min-w-0">
+                <h1 className="font-serif-luxury truncate text-sm font-bold tracking-wide text-[#E5C158] uppercase">
+                  {APP_INFO.name}
+                </h1>
+                <p className="truncate text-[10px] text-[#E6DFD5]/80">
+                  New Monika Jewellers • डीडवाना
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <a
+                href={`tel:${(siteConfig?.contactPhone || APP_INFO.contactPhone).replace(/\s+/g, '')}`}
+                aria-label="Call Showroom Desk"
+                className="rounded-xl border border-[#3D2E1A] bg-[#0B0907] p-2 text-[#E5C158]"
+              >
+                <Phone className="h-3.5 w-3.5" />
+              </a>
               <button
                 type="button"
                 aria-label="Share Live Rates"
                 onClick={handleShareRates}
-                className="rounded-full border border-zinc-200 dark:border-[#C5A358]/35 bg-white dark:bg-[#161616] p-2.5 text-zinc-700 dark:text-[#E8C97A] shadow-sm"
+                className="rounded-xl border border-[#3D2E1A] bg-[#0B0907] p-2 text-[#E5C158]"
               >
-                <Share2 className="h-4 w-4" />
+                <Share2 className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                aria-label="Toggle Light/Dark Mode"
+                onClick={() => handleUpdatePrefs({ theme: resolvedDark ? 'light' : 'dark' })}
+                className="rounded-xl border border-[#3D2E1A] bg-[#0B0907] p-2 text-[#E5C158]"
+              >
+                {resolvedDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+              </button>
+              <button
+                type="button"
+                aria-label="Price Alerts"
+                onClick={() => setShowAlerts(true)}
+                className="relative rounded-xl border border-[#3D2E1A] bg-[#0B0907] p-2 text-[#E5C158]"
+              >
+                <Bell className="h-3.5 w-3.5" />
+                {alerts.length > 0 && (
+                  <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
+                )}
               </button>
               {isAdmin && (
                 <button
                   type="button"
                   aria-label="Admin Panel"
                   onClick={() => setActiveTab(activeTab === 'admin' ? 'rates' : 'admin')}
-                  className={`rounded-full border p-2.5 shadow-sm transition ${
+                  className={`rounded-xl border p-2 transition ${
                     activeTab === 'admin'
-                      ? 'border-[#D4AF37] bg-[#D4AF37] text-[#07090F]'
-                      : 'border-[#C5A358]/35 bg-white dark:bg-[#161616] text-[#9A7422] dark:text-[#E8C97A]'
+                      ? 'border-[#E5C158] bg-[#E5C158] text-[#0B0907]'
+                      : 'border-[#3D2E1A] bg-[#0B0907] text-[#E5C158]'
                   }`}
                 >
-                  <Crown className="h-4 w-4" />
+                  <Crown className="h-3.5 w-3.5" />
                 </button>
               )}
-            </div>
-
-            <div className="flex flex-col items-center text-center">
-              <h1 className="font-serif-luxury text-base font-bold tracking-wide text-[#9A7422] dark:text-[#E6CB94]">
-                {APP_INFO.name}
-              </h1>
-              <p className="text-[9px] tracking-[0.2em] text-zinc-500 uppercase">
-                {APP_INFO.tagline}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                aria-label="Toggle Light/Dark Mode"
-                onClick={() => handleUpdatePrefs({ theme: resolvedDark ? 'light' : 'dark' })}
-                className="rounded-full border border-zinc-200 dark:border-[#C5A358]/35 bg-white dark:bg-[#161616] p-2.5 text-zinc-700 dark:text-[#E8C97A] shadow-sm"
-              >
-                {resolvedDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </button>
-              <button
-                type="button"
-                aria-label="Price Alerts"
-                onClick={() => setShowAlerts(true)}
-                className="relative rounded-full border border-zinc-200 dark:border-[#C5A358]/35 bg-white dark:bg-[#161616] p-2.5 text-zinc-700 dark:text-[#E8C97A] shadow-sm"
-              >
-                <Bell className="h-4 w-4" />
-                {alerts.length > 0 && (
-                  <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
-                )}
-              </button>
             </div>
           </header>
 
@@ -615,10 +623,12 @@ export default function App() {
                     setAlertPreset(preset || null);
                     setShowAlerts(true);
                   }}
+                  onOpenBankDetails={() => setShowBankDetails(true)}
                   unit={prefs.unit || '10g'}
                   onUnitChange={(unit) => handleUpdatePrefs({ unit })}
                   watchlist={prefs.watchlist || []}
                   onToggleWatchlist={handleToggleWatchlist}
+                  siteConfig={siteConfig}
                 />
               )}
 
@@ -649,6 +659,7 @@ export default function App() {
                     }}
                     isAdmin={isAdmin}
                     onOpenAdminNews={() => setActiveTab('admin')}
+                    siteConfig={siteConfig}
                   />
                 </Suspense>
               )}
@@ -664,6 +675,7 @@ export default function App() {
                     onSignOut={handleSignOut}
                     isAdmin={isAdmin}
                     onOpenAdminPanel={() => setActiveTab('admin')}
+                    onOpenBankDetails={() => setShowBankDetails(true)}
                     siteConfig={siteConfig}
                   />
                 </Suspense>
@@ -712,6 +724,7 @@ export default function App() {
               setActiveTerminal('COMPARE');
               setActiveTab('rates');
             }}
+            onOpenBankDetails={() => setShowBankDetails(true)}
             siteConfig={siteConfig}
           />
         </div>
@@ -750,6 +763,12 @@ export default function App() {
         onDeleteAlert={handleDeleteAlert}
         rates={rates}
         preset={alertPreset}
+      />
+
+      <BankDetailsModal
+        open={showBankDetails}
+        onClose={() => setShowBankDetails(false)}
+        siteConfig={siteConfig}
       />
     </div>
   );

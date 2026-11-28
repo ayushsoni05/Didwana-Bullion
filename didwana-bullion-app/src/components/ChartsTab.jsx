@@ -178,7 +178,7 @@ export default function ChartsTab({
         <button
           type="button"
           onClick={() => loadHistory(range)}
-          className="rounded-xl border border-zinc-200 dark:border-[#D4AF37]/30 bg-white dark:bg-[#10141F] p-2 text-zinc-500 dark:text-[#E6CB94]"
+          className="rounded-xl border border-zinc-200 dark:border-[#D4AF37]/30 bg-white dark:bg-[#15100B] p-2 text-zinc-500 dark:text-[#E6CB94]"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
         </button>
@@ -196,7 +196,7 @@ export default function ChartsTab({
       />
 
       {/* Interactive Chart Card */}
-      <div className="rounded-3xl border border-zinc-200 dark:border-[#D4AF37]/20 bg-white dark:bg-[#10141F] p-4 shadow-sm">
+      <div className="rounded-3xl border border-zinc-200 dark:border-[#D4AF37]/20 bg-white dark:bg-[#15100B] p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-3 text-[10px] font-bold">
             <span className="flex items-center gap-1 text-[#9A7422] dark:text-[#E6CB94]">
@@ -206,7 +206,7 @@ export default function ChartsTab({
               <span className="h-2 w-2 rounded-full bg-sky-400" /> Sujangarh
             </span>
           </div>
-          <div className="font-mono-price rounded-full bg-[#D4AF37] px-3 py-0.5 text-[10px] font-bold text-[#07090F]">
+          <div className="font-mono-price rounded-full bg-[#D4AF37] px-3 py-0.5 text-[10px] font-bold text-[#0B0907]">
             {activePoint.label || range} • ₹{Math.round(activePoint.HB || 0).toLocaleString('en-IN')}
           </div>
         </div>
@@ -273,8 +273,8 @@ export default function ChartsTab({
                 }}
                 className={`relative z-10 rounded-full px-3.5 py-1 text-[11px] font-bold transition ${
                   active
-                    ? 'bg-gradient-to-r from-[#E6CB94] to-[#C9A452] text-[#07090F] shadow'
-                    : 'border border-[#D4AF37]/35 bg-white dark:bg-[#07090F] text-zinc-600 dark:text-[#D4AF37]'
+                    ? 'bg-gradient-to-r from-[#E6CB94] to-[#C9A452] text-[#0B0907] shadow'
+                    : 'border border-[#D4AF37]/35 bg-white dark:bg-[#0B0907] text-zinc-600 dark:text-[#D4AF37]'
                 }`}
               >
                 {r}
@@ -286,19 +286,19 @@ export default function ChartsTab({
 
       {/* Stats + International Parity */}
       <div className="grid grid-cols-3 gap-2">
-        <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-3 text-center">
+        <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-3 text-center">
           <div className="text-[10px] uppercase text-zinc-500">Low</div>
           <div className="font-mono-price mt-0.5 text-xs font-bold text-zinc-900 dark:text-zinc-100">
             ₹{stats.rawMin.toLocaleString('en-IN')}
           </div>
         </div>
-        <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-3 text-center">
+        <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-3 text-center">
           <div className="text-[10px] uppercase text-zinc-500">Avg</div>
           <div className="font-mono-price mt-0.5 text-xs font-bold text-[#9A7422] dark:text-[#E6CB94]">
             ₹{stats.avg.toLocaleString('en-IN')}
           </div>
         </div>
-        <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-3 text-center">
+        <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-3 text-center">
           <div className="text-[10px] uppercase text-zinc-500">High</div>
           <div className="font-mono-price mt-0.5 text-xs font-bold text-zinc-900 dark:text-zinc-100">
             ₹{stats.rawMax.toLocaleString('en-IN')}
@@ -307,7 +307,7 @@ export default function ChartsTab({
       </div>
 
       {intlParityGold10g && (
-        <div className="rounded-2xl border border-zinc-200 dark:border-[#D4AF37]/20 bg-white dark:bg-[#10141F] p-4 flex items-center justify-between">
+        <div className="rounded-2xl border border-zinc-200 dark:border-[#D4AF37]/20 bg-white dark:bg-[#15100B] p-4 flex items-center justify-between">
           <div>
             <div className="font-serif-luxury text-sm font-bold text-zinc-900 dark:text-[#E6CB94]">
               Intl Spot Parity (Ex-Duty 10g)

@@ -240,7 +240,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
   return (
     <div className="space-y-4 pb-28">
       {/* Executive Admin Header */}
-      <div className="relative overflow-hidden rounded-3xl border border-[#D4AF37]/45 bg-gradient-to-br from-[#131826] via-[#10141F] to-[#07090F] p-4 shadow-lg text-white">
+      <div className="relative overflow-hidden rounded-3xl border border-[#D4AF37]/45 bg-gradient-to-br from-[#1F160D] via-[#15100B] to-[#0B0907] p-4 shadow-lg text-white">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#E6CB94] to-transparent" />
         <div className="flex items-center justify-between gap-2">
           <div>
@@ -272,7 +272,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
                 onClick={() => setSection(id)}
                 className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-bold transition ${
                   active
-                    ? 'bg-gradient-to-r from-[#E6CB94] to-[#C9A452] text-[#07090F]'
+                    ? 'bg-gradient-to-r from-[#E6CB94] to-[#C9A452] text-[#0B0907]'
                     : 'border border-white/10 bg-white/5 text-zinc-300'
                 }`}
               >
@@ -311,7 +311,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
             ].map((kpi) => (
               <div
                 key={kpi.label}
-                className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-3.5 shadow-sm"
+                className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-3.5 shadow-sm"
               >
                 <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                   {kpi.label}
@@ -325,7 +325,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Geographic Distribution */}
-            <div className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-4 space-y-2.5">
+            <div className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-4 space-y-2.5">
               <div className="flex items-center gap-1.5 text-xs font-bold text-[#9A7422] dark:text-[#E6CB94]">
                 <MapPin className="h-4 w-4" />
                 User City Distribution
@@ -335,7 +335,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
                   {overview.cities.map((c, idx) => (
                     <div
                       key={`${c.city}-${idx}`}
-                      className="flex items-center justify-between rounded-xl bg-zinc-50 dark:bg-[#07090F] px-3 py-2 text-xs"
+                      className="flex items-center justify-between rounded-xl bg-zinc-50 dark:bg-[#0B0907] px-3 py-2 text-xs"
                     >
                       <span className="font-semibold text-zinc-800 dark:text-zinc-200">
                         {c.city}
@@ -353,7 +353,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
             </div>
 
             {/* Recent Security Events */}
-            <div className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-4 space-y-2.5">
+            <div className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-4 space-y-2.5">
               <div className="text-xs font-bold text-[#9A7422] dark:text-[#E6CB94]">
                 Recent Activity Feed
               </div>
@@ -361,7 +361,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
                 {(overview.recentAudit || []).map((a) => (
                   <div
                     key={a.id}
-                    className="rounded-xl bg-zinc-50 dark:bg-[#07090F] px-3 py-2 text-[11px]"
+                    className="rounded-xl bg-zinc-50 dark:bg-[#0B0907] px-3 py-2 text-[11px]"
                   >
                     <div className="flex items-center justify-between font-bold text-zinc-800 dark:text-zinc-200">
                       <span>{a.event_type}</span>
@@ -388,7 +388,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
         <div className="space-y-3">
           <form
             onSubmit={handleSearchUsers}
-            className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-4 space-y-3"
+            className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-4 space-y-3"
           >
             <div className="flex gap-2">
               <div className="relative flex-1">
@@ -398,12 +398,12 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                   placeholder="Search name, phone, email, city, IP..."
-                  className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#07090F] py-2 pl-9 pr-3 text-xs text-zinc-900 dark:text-zinc-100"
+                  className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#0B0907] py-2 pl-9 pr-3 text-xs text-zinc-900 dark:text-zinc-100"
                 />
               </div>
               <button
                 type="submit"
-                className="rounded-xl bg-gradient-to-r from-[#E6CB94] to-[#C9A452] px-4 py-2 text-xs font-bold text-[#07090F]"
+                className="rounded-xl bg-gradient-to-r from-[#E6CB94] to-[#C9A452] px-4 py-2 text-xs font-bold text-[#0B0907]"
               >
                 Find
               </button>
@@ -455,7 +455,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
                   key={u.id}
                   type="button"
                   onClick={() => setSelectedUserId(u.id)}
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-3.5 text-left transition hover:border-[#D4AF37]/50"
+                  className="w-full rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-3.5 text-left transition hover:border-[#D4AF37]/50"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
@@ -486,7 +486,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
                   </div>
 
                   <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[10px]">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-[#07090F] px-2.5 py-1 text-zinc-600 dark:text-zinc-300">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-[#0B0907] px-2.5 py-1 text-zinc-600 dark:text-zinc-300">
                       <MapPin className="h-3 w-3 text-[#D4AF37]" />
                       {u.last_city
                         ? `${u.last_city}${u.last_state ? `, ${u.last_state}` : ''}`
@@ -498,7 +498,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
                         {Number(u.last_latitude).toFixed(3)}, {Number(u.last_longitude).toFixed(3)}
                       </span>
                     )}
-                    <span className="rounded-full bg-zinc-100 dark:bg-[#07090F] px-2 py-1 text-zinc-400">
+                    <span className="rounded-full bg-zinc-100 dark:bg-[#0B0907] px-2 py-1 text-zinc-400">
                       Sessions: {u.active_sessions_count || 0} • Alerts: {u.active_alerts_count || 0}
                     </span>
                   </div>
@@ -514,7 +514,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
         <div className="space-y-4">
           <form
             onSubmit={handleSaveNews}
-            className="rounded-3xl border border-[#D4AF37]/30 bg-white dark:bg-[#10141F] p-4 space-y-3"
+            className="rounded-3xl border border-[#D4AF37]/30 bg-white dark:bg-[#15100B] p-4 space-y-3"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-xs font-bold text-[#9A7422] dark:text-[#E6CB94]">
@@ -550,7 +550,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
               value={newsForm.title}
               onChange={(e) => setNewsForm({ ...newsForm, title: e.target.value })}
               placeholder="Headline (e.g., Gold 24K Surges After Fed Minutes)"
-              className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#07090F] px-3 py-2.5 text-xs text-zinc-900 dark:text-zinc-100"
+              className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#0B0907] px-3 py-2.5 text-xs text-zinc-900 dark:text-zinc-100"
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -593,7 +593,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
               value={newsForm.summary}
               onChange={(e) => setNewsForm({ ...newsForm, summary: e.target.value })}
               placeholder="Short summary (optional — auto-trimmed if left blank)"
-              className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#07090F] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
+              className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#0B0907] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
             />
 
             <textarea
@@ -601,7 +601,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
               value={newsForm.content}
               onChange={(e) => setNewsForm({ ...newsForm, content: e.target.value })}
               placeholder="Full article dispatch, market analysis, or showroom advisory..."
-              className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#07090F] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
+              className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#0B0907] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
             />
 
             <input
@@ -609,7 +609,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
               value={newsForm.imageUrl}
               onChange={(e) => setNewsForm({ ...newsForm, imageUrl: e.target.value })}
               placeholder="Optional Cover Image URL (https://...)"
-              className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#07090F] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
+              className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#0B0907] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
             />
 
             <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-500">
@@ -635,7 +635,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
 
             <button
               type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E6CB94] to-[#C9A452] py-2.5 text-xs font-bold text-[#07090F]"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E6CB94] to-[#C9A452] py-2.5 text-xs font-bold text-[#0B0907]"
             >
               <Save className="h-4 w-4" />
               {newsForm.id ? 'Update Article' : 'Publish to News Tab'}
@@ -645,7 +645,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
           {/* Broadcast Global Notice */}
           <form
             onSubmit={handleBroadcastNotice}
-            className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-4 space-y-2.5"
+            className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-4 space-y-2.5"
           >
             <div className="flex items-center gap-1.5 text-xs font-bold text-[#9A7422] dark:text-[#E6CB94]">
               <Megaphone className="h-4 w-4" />
@@ -656,14 +656,14 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
               value={broadcastTitle}
               onChange={(e) => setBroadcastTitle(e.target.value)}
               placeholder="Broadcast Title"
-              className="w-full rounded-xl border border-white/10 bg-zinc-50 dark:bg-[#07090F] px-3 py-2 text-xs"
+              className="w-full rounded-xl border border-white/10 bg-zinc-50 dark:bg-[#0B0907] px-3 py-2 text-xs"
             />
             <textarea
               rows={2}
               value={broadcastMessage}
               onChange={(e) => setBroadcastMessage(e.target.value)}
               placeholder="Message shown immediately inside every logged-in user's app..."
-              className="w-full rounded-xl border border-white/10 bg-zinc-50 dark:bg-[#07090F] px-3 py-2 text-xs"
+              className="w-full rounded-xl border border-white/10 bg-zinc-50 dark:bg-[#0B0907] px-3 py-2 text-xs"
             />
             <button
               type="submit"
@@ -679,7 +679,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
             {newsList.map((post) => (
               <div
                 key={post.id}
-                className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-3.5 space-y-2"
+                className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-3.5 space-y-2"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -752,7 +752,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
       {section === 'site' && (
         <form onSubmit={handleSaveSiteConfig} className="space-y-4">
           {/* Flash Ticker Banner */}
-          <div className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-4 space-y-3">
+          <div className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-4 space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#9A7422] dark:text-[#E6CB94]">
               Flash Announcement Bar
             </h3>
@@ -774,12 +774,12 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
                 setConfigDraft({ ...configDraft, flashBannerText: e.target.value })
               }
               placeholder="e.g., Dhanteras Special: Zero Making on 24K Bars till 8 PM"
-              className="w-full rounded-xl border border-white/10 bg-zinc-50 dark:bg-[#07090F] px-3 py-2 text-xs"
+              className="w-full rounded-xl border border-white/10 bg-zinc-50 dark:bg-[#0B0907] px-3 py-2 text-xs"
             />
           </div>
 
           {/* Live Rate Adjustments & Freeze */}
-          <div className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-4 space-y-3">
+          <div className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-4 space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#9A7422] dark:text-[#E6CB94]">
               Live Rate Spreads &amp; Market Controls (₹)
             </h3>
@@ -809,7 +809,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
                     type="number"
                     value={configDraft[f.key] ?? 0}
                     onChange={(e) => setConfigDraft({ ...configDraft, [f.key]: e.target.value })}
-                    className="font-mono-price w-full rounded-xl border border-white/10 bg-zinc-50 dark:bg-[#07090F] px-2.5 py-2 text-xs"
+                    className="font-mono-price w-full rounded-xl border border-white/10 bg-zinc-50 dark:bg-[#0B0907] px-2.5 py-2 text-xs"
                   />
                 </div>
               ))}
@@ -817,7 +817,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
           </div>
 
           {/* Showroom Contacts & Feature Toggles */}
-          <div className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-4 space-y-3 text-xs">
+          <div className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-4 space-y-3 text-xs">
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#9A7422] dark:text-[#E6CB94]">
               Showroom Desk, Feature Switches &amp; Maintenance
             </h3>
@@ -828,7 +828,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
                   type="text"
                   value={configDraft.contactPhone || ''}
                   onChange={(e) => setConfigDraft({ ...configDraft, contactPhone: e.target.value })}
-                  className="w-full rounded-xl border border-white/10 bg-zinc-50 dark:bg-[#07090F] px-3 py-2 text-xs"
+                  className="w-full rounded-xl border border-white/10 bg-zinc-50 dark:bg-[#0B0907] px-3 py-2 text-xs"
                 />
               </div>
               <div>
@@ -839,7 +839,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
                   onChange={(e) =>
                     setConfigDraft({ ...configDraft, whatsappNumber: e.target.value })
                   }
-                  className="w-full rounded-xl border border-white/10 bg-zinc-50 dark:bg-[#07090F] px-3 py-2 text-xs"
+                  className="w-full rounded-xl border border-white/10 bg-zinc-50 dark:bg-[#0B0907] px-3 py-2 text-xs"
                 />
               </div>
             </div>
@@ -855,7 +855,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
               ].map((t) => (
                 <label
                   key={t.key}
-                  className="flex items-center gap-2 rounded-xl bg-zinc-50 dark:bg-[#07090F] px-3 py-2"
+                  className="flex items-center gap-2 rounded-xl bg-zinc-50 dark:bg-[#0B0907] px-3 py-2"
                 >
                   <input
                     type="checkbox"
@@ -878,13 +878,13 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
                   setConfigDraft({ ...configDraft, maintenanceMessage: e.target.value })
                 }
                 placeholder="Maintenance notice displayed to non-admin users"
-                className="w-full rounded-xl border border-rose-500/30 bg-[#07090F] px-3 py-2 text-xs"
+                className="w-full rounded-xl border border-rose-500/30 bg-[#0B0907] px-3 py-2 text-xs"
               />
             )}
 
             <button
               type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E6CB94] to-[#C9A452] py-3 text-xs font-bold text-[#07090F]"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E6CB94] to-[#C9A452] py-3 text-xs font-bold text-[#0B0907]"
             >
               <Save className="h-4 w-4" />
               Save Live Website &amp; App Config
@@ -896,7 +896,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
       {/* 5. GLOBAL AUDIT LOGS & ALERTS */}
       {section === 'audit' && (
         <div className="space-y-4">
-          <div className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-4 space-y-2.5">
+          <div className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-4 space-y-2.5">
             <h3 className="text-xs font-bold text-[#9A7422] dark:text-[#E6CB94]">
               Active User Price Alerts ({allAlerts.length})
             </h3>
@@ -904,7 +904,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
               {allAlerts.map((al) => (
                 <div
                   key={al.id}
-                  className="flex items-center justify-between rounded-xl bg-zinc-50 dark:bg-[#07090F] px-3 py-2"
+                  className="flex items-center justify-between rounded-xl bg-zinc-50 dark:bg-[#0B0907] px-3 py-2"
                 >
                   <div>
                     <span className="font-bold text-zinc-900 dark:text-zinc-100">
@@ -928,7 +928,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
             </div>
           </div>
 
-          <div className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-4 space-y-2.5">
+          <div className="rounded-3xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-4 space-y-2.5">
             <h3 className="text-xs font-bold text-[#9A7422] dark:text-[#E6CB94]">
               Global Security Audit Log ({auditLogs.length})
             </h3>
@@ -936,7 +936,7 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
               {auditLogs.map((l) => (
                 <div
                   key={l.id}
-                  className="flex items-center justify-between gap-2 rounded-xl bg-zinc-50 dark:bg-[#07090F] px-3 py-2"
+                  className="flex items-center justify-between gap-2 rounded-xl bg-zinc-50 dark:bg-[#0B0907] px-3 py-2"
                 >
                   <div className="min-w-0">
                     <div className="font-bold text-zinc-800 dark:text-zinc-200">

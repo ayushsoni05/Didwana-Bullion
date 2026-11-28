@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Bell, BellRing, Calculator, CheckCircle2, Plus, Trash2 } from 'lucide-react';
+import { Bell, BellRing, Calculator, CheckCircle2, Landmark, Plus, Trash2 } from 'lucide-react';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { APP_INFO } from '../config/constants';
 import { BottomSheetModal } from './ui/BottomSheetModal';
 import { LuxurySelect } from './ui/LuxurySelect';
 import { ShimmerButton } from './ui/ShimmerButton';
@@ -52,7 +53,7 @@ export function CalculatorModal({ open, onClose, rates, preset }) {
               onClick={() => setTerminal(t.id)}
               className={`rounded-xl py-2 text-xs font-bold transition ${
                 terminal === t.id
-                  ? 'bg-gradient-to-r from-[#E6CB94] to-[#C9A452] text-[#07090F]'
+                  ? 'bg-gradient-to-r from-[#E6CB94] to-[#C9A452] text-[#0B0907]'
                   : 'border border-zinc-200 dark:border-white/10 text-zinc-500'
               }`}
             >
@@ -83,7 +84,7 @@ export function CalculatorModal({ open, onClose, rates, preset }) {
               step="0.1"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
-              className="font-mono-price w-full rounded-xl border border-zinc-200 dark:border-[#D4AF37]/30 bg-zinc-50 dark:bg-[#07090F] px-3.5 py-2.5 text-sm font-bold text-zinc-900 dark:text-zinc-100 focus:border-[#D4AF37] focus:outline-none"
+              className="font-mono-price w-full rounded-xl border border-zinc-200 dark:border-[#D4AF37]/30 bg-zinc-50 dark:bg-[#0B0907] px-3.5 py-2.5 text-sm font-bold text-zinc-900 dark:text-zinc-100 focus:border-[#D4AF37] focus:outline-none"
             />
           </div>
 
@@ -109,7 +110,7 @@ export function CalculatorModal({ open, onClose, rates, preset }) {
           />
         </label>
 
-        <div className="rounded-2xl border border-[#D4AF37]/30 bg-zinc-50 dark:bg-[#07090F] p-4 space-y-1.5">
+        <div className="rounded-2xl border border-[#D4AF37]/30 bg-zinc-50 dark:bg-[#0B0907] p-4 space-y-1.5">
           <div className="flex justify-between text-xs text-zinc-500">
             <span>Live Ask ({selectedProd?.unit})</span>
             <span className="font-mono-price font-bold text-zinc-900 dark:text-zinc-100">
@@ -217,7 +218,7 @@ export function PriceAlertsModal({
   return (
     <BottomSheetModal open={open} onClose={onClose} title="Live Price Alerts" icon={Bell}>
       <div className="space-y-3.5">
-        <div className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#07090F] px-3 py-2 text-xs">
+        <div className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#0B0907] px-3 py-2 text-xs">
           {permState === 'granted' ? (
             <span className="flex items-center gap-1.5 text-emerald-500 font-semibold">
               <CheckCircle2 className="h-4 w-4" />
@@ -232,7 +233,7 @@ export function PriceAlertsModal({
               <button
                 type="button"
                 onClick={requestNotifPermission}
-                className="rounded-lg bg-[#D4AF37] px-2.5 py-1 text-[11px] font-bold text-[#07090F]"
+                className="rounded-lg bg-[#D4AF37] px-2.5 py-1 text-[11px] font-bold text-[#0B0907]"
               >
                 Enable
               </button>
@@ -280,7 +281,7 @@ export function PriceAlertsModal({
                 placeholder={currentAsk ? `e.g. ${Math.round(currentAsk)}` : 'Target ₹'}
                 value={targetAsk}
                 onChange={(e) => setTargetAsk(e.target.value)}
-                className="font-mono-price w-full rounded-xl border border-zinc-200 dark:border-[#D4AF37]/30 bg-zinc-50 dark:bg-[#07090F] px-3 py-2.5 text-xs font-bold text-zinc-900 dark:text-zinc-100"
+                className="font-mono-price w-full rounded-xl border border-zinc-200 dark:border-[#D4AF37]/30 bg-zinc-50 dark:bg-[#0B0907] px-3 py-2.5 text-xs font-bold text-zinc-900 dark:text-zinc-100"
               />
             </div>
           </div>
@@ -298,7 +299,7 @@ export function PriceAlertsModal({
             alerts.map((a) => (
               <div
                 key={a.id}
-                className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#07090F] px-3.5 py-2.5 text-xs"
+                className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#0B0907] px-3.5 py-2.5 text-xs"
               >
                 <div>
                   <div className="font-bold text-zinc-900 dark:text-zinc-100">
@@ -324,6 +325,70 @@ export function PriceAlertsModal({
             ))
           )}
         </div>
+      </div>
+    </BottomSheetModal>
+  );
+}
+
+export function BankDetailsModal({ open, onClose, siteConfig }) {
+  const contactPhone = siteConfig?.contactPhone || APP_INFO.contactPhone;
+  const whatsappNumber = String(
+    siteConfig?.whatsappNumber || APP_INFO.whatsappPhone || '919351214851'
+  ).replace(/\D/g, '');
+
+  return (
+    <BottomSheetModal open={open} onClose={onClose} title="Bank Details & RTGS Desk" icon={Landmark}>
+      <div className="space-y-3 text-xs">
+        <div className="rounded-2xl border border-[#3D2E1A] bg-[#0B0907] p-4 space-y-2">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-[#E5C158]">
+            New Monika Jewellers — Settlement Account
+          </div>
+          <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
+            <span className="text-zinc-400">Firm / Account Name</span>
+            <span className="font-bold text-white text-right">
+              {siteConfig?.bankAccountName || 'New Monika Jewellers'}
+            </span>
+            <span className="text-zinc-400">Showroom Branch</span>
+            <span className="font-semibold text-zinc-200 text-right">
+              {siteConfig?.bankBranch || 'Station Road, Didwana'}
+            </span>
+            <span className="text-zinc-400">RTGS / NEFT Desk</span>
+            <span className="font-mono-price font-bold text-[#E5C158] text-right">
+              {contactPhone}
+            </span>
+          </div>
+          {siteConfig?.bankAccountNumber ? (
+            <div className="mt-2 border-t border-[#3D2E1A] pt-2 space-y-1">
+              <div className="flex justify-between">
+                <span className="text-zinc-400">A/C No.</span>
+                <span className="font-mono-price font-bold text-white">
+                  {siteConfig.bankAccountNumber}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-400">IFSC Code</span>
+                <span className="font-mono-price font-bold text-emerald-400">
+                  {siteConfig.bankIfsc || '—'}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-2 border-t border-[#3D2E1A] pt-2 text-[11px] leading-relaxed text-zinc-400">
+              For instant RTGS / NEFT / IMPS booking account credentials and advance margin receipts, tap WhatsApp Desk below or confirm directly on {contactPhone}.
+            </p>
+          )}
+        </div>
+
+        <a
+          href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+            'Namaste Didwana Bullion Desk, please share current RTGS Bank Details for bullion booking.'
+          )}`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex w-full items-center justify-center rounded-xl bg-[#148A14] py-3 text-xs font-extrabold uppercase tracking-wider text-white"
+        >
+          Request RTGS Details on WhatsApp
+        </a>
       </div>
     </BottomSheetModal>
   );

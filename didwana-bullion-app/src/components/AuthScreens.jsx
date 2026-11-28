@@ -11,13 +11,15 @@ import {
   Phone,
   ShieldCheck,
   User,
+  MessageCircle,
+  Crown,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { APP_INFO } from '../config/constants';
 import { authApi } from '../services/api';
 import { authStorage, consentStorage } from '../services/storage';
-import { GoldCrest } from './SplashGate';
-import { ShimmerButton } from './ui/ShimmerButton';
+import bullionHero from '../assets/bullion-hero.jpg';
+import dbLogoHdr from '../assets/db-logo-hdr.png';
 
 function evaluatePassword(password) {
   const checks = {
@@ -189,48 +191,59 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#07090F] px-5 py-8 flex flex-col justify-center safe-top safe-bottom">
-      {/* Ambient Metallic Halo */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-28 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full opacity-30"
-        style={{
-          background: 'radial-gradient(circle, rgba(212,175,55,0.28) 0%, rgba(7,9,15,0) 70%)',
-        }}
-      />
+    <div className="relative min-h-screen bg-[#0B0907] text-[#F5F2EB] flex flex-col justify-between safe-bottom overflow-x-hidden">
+      {/* Top Photographic Bullion Hero Banner (Replicating Studio 24K Bars & Coins) */}
+      <div className="relative h-56 w-full overflow-hidden">
+        <img
+          src={bullionHero}
+          alt="24K 999.9 Pure Gold Bullion Bars & Coins"
+          className="h-full w-full object-cover object-center opacity-85"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(180deg, rgba(11,9,7,0.35) 0%, rgba(11,9,7,0.68) 60%, #0B0907 100%)',
+          }}
+        />
 
-      <div className="relative z-10 mx-auto w-full max-w-md">
-        {/* Editorial Serif Header */}
-        <div className="mb-6 flex flex-col items-center text-center">
-          <GoldCrest size={62} />
-          <h1 className="font-serif-luxury mt-4 text-2xl font-bold tracking-wide text-[#E6CB94]">
-            {mode === 'signin'
-              ? 'Welcome Back'
-              : mode === 'signup'
-              ? 'Join Didwana Bullion'
-              : 'Account Recovery'}
+        {/* Overlaid Brand Crest & Live Tagline */}
+        <div className="absolute inset-x-0 bottom-3 flex flex-col items-center px-4 text-center safe-top">
+          <div className="flex flex-col items-center">
+            <Crown className="h-4 w-4 text-[#E5C158]" />
+            <div className="mt-0.5 h-12 w-12 overflow-hidden rounded-full border-2 border-[#D4AF37] bg-[#15100B] p-0.5 shadow-xl">
+              <img
+                src={dbLogoHdr}
+                alt="DB Logo"
+                className="h-full w-full rounded-full object-cover"
+              />
+            </div>
+          </div>
+          <h1 className="font-serif-luxury mt-1.5 text-2xl font-bold tracking-[0.06em] text-[#E5C158] uppercase drop-shadow">
+            {APP_INFO.name}
           </h1>
-          <p className="mt-1 text-[11px] font-semibold tracking-[0.22em] text-zinc-400 uppercase">
-            {APP_INFO.tagline} • Station Road
+          <p className="text-[11px] font-medium text-[#E6DFD5]">
+            New Monika Jewellers • Purity &amp; Commitment
           </p>
+          <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-[#15100B]/90 px-3 py-1 text-[10px] font-semibold text-[#E5C158]">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#148A14]" />
+            GOLD 995 • SILVER PETI • JODHPUR &amp; SUJANGARH
+          </div>
         </div>
+      </div>
 
-        {/* Layered Glassmorphic Card */}
+      {/* Overlapping Smoked-Bronze Auth Card */}
+      <div className="relative z-10 mx-auto w-full max-w-md px-4 pb-6 pt-2 flex-1 flex flex-col justify-between">
         <AnimatePresence mode="wait">
           <motion.div
             key={mode}
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="relative overflow-hidden rounded-3xl border border-[#D4AF37]/25 bg-[#10141F]/95 p-6 shadow-[0_24px_64px_-16px_rgba(0,0,0,0.9)]"
+            transition={{ duration: 0.22 }}
+            className="rounded-2xl border border-[#4A371E] bg-[#15100B]/95 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.85)]"
           >
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#E6CB94]/60 to-transparent"
-            />
-
-            {mode === 'forgot' && (
+            {mode === 'forgot' ? (
               <button
                 type="button"
                 onClick={() => switchMode('signin')}
@@ -239,17 +252,42 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                 <ArrowLeft className="h-3.5 w-3.5" />
                 Back to Sign In
               </button>
+            ) : (
+              <div className="mb-5 grid grid-cols-2 rounded-xl bg-[#0B0907] p-1 border border-[#3D2E1A]">
+                <button
+                  type="button"
+                  onClick={() => switchMode('signin')}
+                  className={`rounded-lg py-2 text-xs font-bold tracking-wider uppercase transition ${
+                    mode === 'signin'
+                      ? 'bg-gradient-to-r from-[#E5C158] to-[#C69749] text-[#0B0907] shadow'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchMode('signup')}
+                  className={`rounded-lg py-2 text-xs font-bold tracking-wider uppercase transition ${
+                    mode === 'signup'
+                      ? 'bg-gradient-to-r from-[#E5C158] to-[#C69749] text-[#0B0907] shadow'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  Create Account
+                </button>
+              </div>
             )}
 
             {error && (
-              <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
+              <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-500/35 bg-red-500/10 p-3 text-xs text-red-300">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
                 <span>{error}</span>
               </div>
             )}
 
             {successMsg && (
-              <div className="mb-4 flex items-start gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-300">
+              <div className="mb-4 flex items-start gap-2 rounded-xl border border-emerald-500/35 bg-emerald-500/10 p-3 text-xs text-emerald-300">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                 <span>{successMsg}</span>
               </div>
@@ -258,41 +296,42 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
             {mode === 'signin' && (
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
-                    Email or Mobile Number
+                  <label className="mb-1.5 block text-[11px] font-semibold text-zinc-300">
+                    Mobile Number (+91) or Email
                   </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
+                  <div className="relative flex items-center">
+                    <Phone className="absolute left-3.5 h-4 w-4 text-[#D4AF37]" />
+                    <span className="absolute left-9 text-xs font-bold text-[#D4AF37]">+91</span>
                     <input
                       type="text"
                       value={identifier}
                       onChange={(e) => setIdentifier(e.target.value)}
-                      placeholder="you@example.com or 9351214851"
+                      placeholder="9351214851 or email"
                       autoComplete="username"
-                      className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-10 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                      className="w-full rounded-xl border border-[#3D2E1A] bg-[#0B0907] py-3 pl-18 pr-3.5 text-sm text-white placeholder-zinc-500 focus:border-[#D4AF37] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
+                  <label className="mb-1.5 block text-[11px] font-semibold text-zinc-300">
                     Password
                   </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
+                  <div className="relative flex items-center">
+                    <Lock className="absolute left-3.5 h-4 w-4 text-[#D4AF37]" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
                       autoComplete="current-password"
-                      className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-10 pr-10 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                      className="w-full rounded-xl border border-[#3D2E1A] bg-[#0B0907] py-3 pl-10 pr-10 text-sm text-white placeholder-zinc-500 focus:border-[#D4AF37] focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label="Toggle password visibility"
-                      className="absolute right-3 top-2.5 text-zinc-400 hover:text-zinc-200"
+                      className="absolute right-3 text-zinc-400 hover:text-zinc-200"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -305,231 +344,250 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="h-4 w-4 rounded border-white/20 bg-[#07090F] accent-[#D4AF37]"
+                      className="h-4 w-4 rounded accent-[#D4AF37]"
                     />
                     Remember Me
                   </label>
                   <button
                     type="button"
                     onClick={() => switchMode('forgot')}
-                    className="font-medium text-[#D4AF37] hover:underline"
+                    className="font-semibold text-[#D4AF37] hover:underline"
                   >
                     Forgot Password?
                   </button>
                 </div>
 
-                <ShimmerButton type="submit" disabled={loading} className="w-full py-3.5">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E5C158] via-[#D4AF37] to-[#B8892D] py-3.5 text-xs font-extrabold tracking-wider text-[#0B0907] uppercase shadow-lg active:scale-[0.99] transition disabled:opacity-60"
+                >
                   <span>
                     {loading
                       ? slowWakeMsg
                         ? 'Waking Secure Server...'
-                        : 'Signing In...'
-                      : 'Access Live Terminals'}
+                        : 'Connecting Terminals...'
+                      : 'Sign In to Liverate Desk'}
                   </span>
                   <ArrowRight className="h-4 w-4" />
-                </ShimmerButton>
-
-                <div className="pt-1 text-center text-xs text-zinc-400">
-                  New to Didwana Bullion?{' '}
-                  <button
-                    type="button"
-                    onClick={() => switchMode('signup')}
-                    className="font-bold text-[#E6CB94] hover:underline"
-                  >
-                    Create Account
-                  </button>
-                </div>
+                </button>
               </form>
             )}
 
             {mode === 'signup' && (
-              <form onSubmit={handleSignUp} className="space-y-3.5">
+              <form onSubmit={handleSignUp} className="space-y-3">
                 <div>
-                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
+                  <label className="mb-1 block text-[11px] font-semibold text-zinc-300">
                     Full Name
                   </label>
-                  <div className="relative">
-                    <User className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
+                  <div className="relative flex items-center">
+                    <User className="absolute left-3.5 h-4 w-4 text-[#D4AF37]" />
                     <input
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Your full name"
-                      className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-10 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                      placeholder="Your full name / firm name"
+                      className="w-full rounded-xl border border-[#3D2E1A] bg-[#0B0907] py-2.5 pl-10 pr-3.5 text-sm text-white placeholder-zinc-500 focus:border-[#D4AF37] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
+                  <label className="mb-1 block text-[11px] font-semibold text-zinc-300">
                     Email Address
                   </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
+                  <div className="relative flex items-center">
+                    <Mail className="absolute left-3.5 h-4 w-4 text-[#D4AF37]" />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@example.com"
-                      className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-10 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                      className="w-full rounded-xl border border-[#3D2E1A] bg-[#0B0907] py-2.5 pl-10 pr-3.5 text-sm text-white placeholder-zinc-500 focus:border-[#D4AF37] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
+                  <label className="mb-1 block text-[11px] font-semibold text-zinc-300">
                     Mobile Number (+91)
                   </label>
                   <div className="relative flex items-center">
-                    <Phone className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
-                    <span className="absolute left-10 text-xs font-semibold text-zinc-400">+91</span>
+                    <Phone className="absolute left-3.5 h-4 w-4 text-[#D4AF37]" />
+                    <span className="absolute left-9 text-xs font-bold text-[#D4AF37]">+91</span>
                     <input
                       type="tel"
                       maxLength={10}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                       placeholder="9351214851"
-                      className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-18 pr-3.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                      className="w-full rounded-xl border border-[#3D2E1A] bg-[#0B0907] py-2.5 pl-18 pr-3.5 text-sm text-white placeholder-zinc-500 focus:border-[#D4AF37] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
+                  <label className="mb-1 block text-[11px] font-semibold text-zinc-300">
                     Password
                   </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
+                  <div className="relative flex items-center">
+                    <Lock className="absolute left-3.5 h-4 w-4 text-[#D4AF37]" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Min 8 chars, A-Z, a-z, 0-9, !@#$"
-                      className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-10 pr-10 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                      className="w-full rounded-xl border border-[#3D2E1A] bg-[#0B0907] py-2.5 pl-10 pr-10 text-sm text-white placeholder-zinc-500 focus:border-[#D4AF37] focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-2.5 text-zinc-400"
+                      className="absolute right-3 text-zinc-400"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-
-                  {password.length > 0 && (
-                    <div className="mt-2 space-y-1">
-                      <div className="flex justify-between text-[10px]">
-                        <span className="text-zinc-400">Password strength</span>
-                        <span className="font-bold text-[#E6CB94]">{strength.label}</span>
-                      </div>
-                      <div className="grid grid-cols-5 gap-1">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <div
-                            key={i}
-                            className={`h-1 rounded-full ${
-                              strength.score >= i ? 'bg-[#D4AF37]' : 'bg-zinc-800'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <div
+                        key={n}
+                        className={`h-1 flex-1 rounded-full ${
+                          strength.score >= n
+                            ? strength.score <= 2
+                              ? 'bg-red-500'
+                              : strength.score <= 4
+                              ? 'bg-amber-400'
+                              : 'bg-emerald-500'
+                            : 'bg-white/10'
+                        }`}
+                      />
+                    ))}
+                    <span className="text-[10px] font-semibold text-zinc-400">{strength.label}</span>
+                  </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
+                  <label className="mb-1 block text-[11px] font-semibold text-zinc-300">
                     Confirm Password
                   </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
+                  <div className="relative flex items-center">
+                    <Lock className="absolute left-3.5 h-4 w-4 text-[#D4AF37]" />
                     <input
                       type={showConfirm ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Re-enter password"
-                      className="w-full rounded-xl border border-white/10 bg-[#07090F] py-2.5 pl-10 pr-10 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
+                      className="w-full rounded-xl border border-[#3D2E1A] bg-[#0B0907] py-2.5 pl-10 pr-10 text-sm text-white placeholder-zinc-500 focus:border-[#D4AF37] focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute right-3 top-2.5 text-zinc-400"
+                      className="absolute right-3 text-zinc-400"
                     >
                       {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
 
-                <label className="flex items-start gap-2.5 pt-1 text-xs leading-relaxed text-zinc-400">
+                <label className="flex items-start gap-2.5 rounded-xl border border-[#3D2E1A] bg-[#0B0907] p-3 text-xs leading-relaxed text-zinc-300">
                   <input
                     type="checkbox"
                     checked={acceptedLegal}
                     onChange={(e) => setAcceptedLegal(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-[#07090F] accent-[#D4AF37]"
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-[#D4AF37]"
                   />
                   <span>
-                    I accept{' '}
-                    <button type="button" onClick={() => onOpenDoc('terms')} className="text-[#E6CB94] underline">
+                    I accept the{' '}
+                    <button type="button" onClick={() => onOpenDoc('terms')} className="text-[#D4AF37] underline">
                       Terms
                     </button>
                     ,{' '}
-                    <button type="button" onClick={() => onOpenDoc('privacy')} className="text-[#E6CB94] underline">
-                      Privacy
+                    <button type="button" onClick={() => onOpenDoc('privacy')} className="text-[#D4AF37] underline">
+                      Privacy Policy
                     </button>{' '}
                     &amp;{' '}
-                    <button type="button" onClick={() => onOpenDoc('cookies')} className="text-[#E6CB94] underline">
+                    <button type="button" onClick={() => onOpenDoc('cookies')} className="text-[#D4AF37] underline">
                       Cookies
                     </button>
                     .
                   </span>
                 </label>
 
-                <ShimmerButton type="submit" disabled={loading} className="w-full py-3.5">
-                  <span>
-                    {loading
-                      ? slowWakeMsg
-                        ? 'Waking Secure Server...'
-                        : 'Creating Account...'
-                      : 'Create Secure Account'}
-                  </span>
-                  <ArrowRight className="h-4 w-4" />
-                </ShimmerButton>
-
-                <div className="pt-1 text-center text-xs text-zinc-400">
-                  Already registered?{' '}
-                  <button
-                    type="button"
-                    onClick={() => switchMode('signin')}
-                    className="font-bold text-[#E6CB94] hover:underline"
-                  >
-                    Sign In
-                  </button>
-                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E5C158] via-[#D4AF37] to-[#B8892D] py-3.5 text-xs font-extrabold tracking-wider text-[#0B0907] uppercase shadow-lg disabled:opacity-60"
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  <span>{loading ? 'Creating Account...' : 'Create Trade Account'}</span>
+                </button>
               </form>
             )}
 
             {mode === 'forgot' && (
               <form onSubmit={handleForgot} className="space-y-4">
-                <p className="text-xs text-zinc-400">
-                  Enter your registered email address to request a password reset.
+                <p className="text-xs leading-relaxed text-zinc-400">
+                  Enter your registered email or mobile number. For instant support, contact our trade desk on {APP_INFO.contactPhone}.
                 </p>
-                <input
-                  type="email"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full rounded-xl border border-white/10 bg-[#07090F] px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-[#D4AF37] focus:outline-none"
-                />
-                <ShimmerButton type="submit" disabled={loading} className="w-full py-3">
-                  {loading ? 'Sending...' : 'Send Reset Link'}
-                </ShimmerButton>
+                <div className="relative flex items-center">
+                  <Mail className="absolute left-3.5 h-4 w-4 text-[#D4AF37]" />
+                  <input
+                    type="text"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    placeholder="Registered email or mobile"
+                    className="w-full rounded-xl border border-[#3D2E1A] bg-[#0B0907] py-3 pl-10 pr-3.5 text-sm text-white placeholder-zinc-500 focus:border-[#D4AF37] focus:outline-none"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#E5C158] to-[#C69749] py-3 text-xs font-extrabold uppercase text-[#0B0907]"
+                >
+                  {loading ? 'Submitting...' : 'Request Reset'}
+                </button>
               </form>
             )}
           </motion.div>
         </AnimatePresence>
 
-        <div className="mt-5 flex items-center justify-center gap-1.5 text-[11px] text-zinc-500">
-          <ShieldCheck className="h-3.5 w-3.5 text-[#D4AF37]" />
-          <span>TLS Encrypted • {APP_INFO.address}</span>
+        {/* Bottom Trade Desk Booking Bar (Exact Stitch Match) */}
+        <div className="mt-4 flex items-center justify-between gap-2 rounded-2xl border border-[#3D2E1A] bg-[#15100B] px-3.5 py-2.5 shadow-md">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <img
+              src={dbLogoHdr}
+              alt="Booking Desk"
+              className="h-9 w-9 shrink-0 rounded-full border border-[#D4AF37]/50 object-cover"
+            />
+            <div className="min-w-0">
+              <div className="text-[9px] font-bold tracking-widest text-[#D4AF37] uppercase">
+                Booking Number
+              </div>
+              <div className="font-mono-price text-xs font-bold text-white">
+                {APP_INFO.contactPhone}
+              </div>
+              <div className="truncate text-[10px] text-zinc-400">Station Road, Didwana</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <a
+              href={`https://wa.me/${APP_INFO.whatsappPhone}`}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="WhatsApp Trade Desk"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#148A14] text-white shadow"
+            >
+              <MessageCircle className="h-4 w-4" />
+            </a>
+            <a
+              href={`tel:${APP_INFO.contactPhone.replace(/\s+/g, '')}`}
+              aria-label="Call Trade Desk"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#E5C158] to-[#C69749] text-[#0B0907] shadow"
+            >
+              <Phone className="h-4 w-4" />
+            </a>
+          </div>
         </div>
       </div>
     </div>

@@ -2,21 +2,21 @@ import React, { useMemo, useState } from 'react';
 import {
   Bell,
   Calculator,
-  ArrowUpRight,
-  ArrowDownRight,
   Volume2,
   VolumeX,
   RefreshCw,
   Star,
+  Phone,
+  MessageCircle,
   Columns3,
+  Landmark,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { LuxurySelect } from './ui/LuxurySelect';
+import { APP_INFO } from '../config/constants';
 
 function scalePrice(val, itemUnit, displayUnit) {
   const n = Number(val);
   if (!Number.isFinite(n) || n <= 0) return null;
-  // Silver 1KG items stay 1KG when viewing 10g; scale only 10g items or when user explicitly picks 1g/tola
   const isKg = String(itemUnit || '').toLowerCase().includes('kg');
   if (displayUnit === '10g') return n;
   const perGram = isKg ? n / 1000 : n / 10;
@@ -25,16 +25,16 @@ function scalePrice(val, itemUnit, displayUnit) {
   return n;
 }
 
-function formatINR(num) {
-  if (!Number.isFinite(Number(num)) || Number(num) <= 0) return '—';
-  return `₹${Math.round(Number(num)).toLocaleString('en-IN')}`;
+function formatNum(num) {
+  if (!Number.isFinite(Number(num)) || Number(num) <= 0) return '--';
+  return Math.round(Number(num)).toLocaleString('en-IN');
 }
 
 const TERMINAL_TABS = [
-  { id: 'HB', label: 'Jodhpur', full: 'Jodhpur Rates', subtitle: 'Jodhpur Bullion Mandi' },
-  { id: 'MOSUN', label: 'Sujangarh', full: 'Sujangarh Rates', subtitle: 'Sujangarh Mandi (Cash & RTGS)' },
-  { id: 'IBJA', label: 'IBJA', full: 'IBJA Rates', subtitle: 'Official Benchmark' },
-  { id: 'COMPARE', label: 'Compare', full: '3-Terminal Compare', subtitle: 'Jodhpur vs Sujangarh vs IBJA' },
+  { id: 'HB', label: 'HB JODHPUR', full: 'HB Jodhpur Rates' },
+  { id: 'MOSUN', label: 'MOSUN SUJANGARH', full: 'Mosun & Sons Sujangarh' },
+  { id: 'IBJA', label: 'IBJA', full: 'IBJA Official' },
+  { id: 'COMPARE', label: 'COMPARE', full: '3-Mandi Compare' },
 ];
 
 export default function LiveRatesTab({
@@ -49,161 +49,153 @@ export default function LiveRatesTab({
   refreshing,
   onOpenCalculator,
   onOpenAlertFor,
+  onOpenBankDetails,
   unit = '10g',
   onUnitChange,
   watchlist = [],
   onToggleWatchlist,
+  siteConfig,
 }) {
-  const [filterMode, setFilterMode] = useState('ALL'); // 'ALL' | 'gold' | 'silver' | 'RTGS' | 'CASH'
+  const [subView, setSubView] = useState('BULLION'); // 'BULLION' | 'JEWELLERY' | 'COINS'
   const currentTerm = activeTerminal === 'ALL' ? 'HB' : activeTerminal;
-  const termMeta = TERMINAL_TABS.find((t) => t.id === currentTerm) || TERMINAL_TABS[0];
 
   const rawList = rates?.[currentTerm]?.list || [];
   const filteredList = useMemo(() => {
-    if (filterMode === 'ALL') return rawList;
-    if (filterMode === 'gold' || filterMode === 'silver') {
-      return rawList.filter((i) => i.metal === filterMode);
+    if (subView === 'JEWELLERY') {
+      return rawList.filter((i) =>
+        /916|22k|20k|18k|14k|silver10g/i.test(`${i.key} ${i.name}`)
+      );
     }
-    return rawList.filter((i) =>
-      `${i.name} ${i.tag}`.toUpperCase().includes(filterMode)
-    );
-  }, [rawList, filterMode]);
-
-  // Pinned Watchlist items across all 3 terminals
-  const pinnedCards = useMemo(() => {
-    return watchlist
-      .map((entry) => {
-        const [termId, key] = String(entry).split(':');
-        const item = rates?.[termId]?.items?.[key];
-        if (!item) return null;
-        return { entry, termId, item };
-      })
-      .filter(Boolean);
-  }, [watchlist, rates]);
+    return rawList;
+  }, [rawList, subView]);
 
   const spot = rates?.spot || {};
-  const goldSilverRatio =
-    spot.xauUsd && spot.xagUsd ? (spot.xauUsd / spot.xagUsd).toFixed(1) : null;
+  const gold995Ask =
+    rates?.[currentTerm]?.items?.gold995?.ask || rates?.HB?.items?.gold995?.ask || 0;
+  const gold995Bid =
+    rates?.[currentTerm]?.items?.gold995?.bid || rates?.HB?.items?.gold995?.bid || 0;
+  const silverPetiAsk =
+    rates?.[currentTerm]?.items?.silverPeti?.ask || rates?.HB?.items?.silverPeti?.ask || 0;
+  const silverPetiBid =
+    rates?.[currentTerm]?.items?.silverPeti?.bid || rates?.HB?.items?.silverPeti?.bid || 0;
+
+  const coinsCatalog = useMemo(() => {
+    const g24 = rates?.HB?.items?.gold24k?.ask || gold995Ask || 0;
+    const g22 = rates?.HB?.items?.gold916?.ask || (g24 ? g24 * 0.916 : 0);
+    const s1kg = silverPetiAsk || 0;
+    return [
+      {
+        name: 'Gold Coin 10 GMS (999.9 Mint)',
+        sub: 'Pure 24K Ready Stock • 3% GST Paid',
+        buy: g24 ? Math.round(g24 * 0.992) : null,
+        sell: g24 ? Math.round(g24) : null,
+      },
+      {
+        name: 'Gold Tola Bar (11.664 GMS)',
+        sub: 'Traditional Marwar Bullion Tola',
+        buy: g24 ? Math.round((g24 / 10) * 11.664 * 0.992) : null,
+        sell: g24 ? Math.round((g24 / 10) * 11.664) : null,
+      },
+      {
+        name: 'Gold Coin 10 GMS (22K 916 HUID)',
+        sub: 'BIS Hallmarked Jewellery Coin',
+        buy: g22 ? Math.round(g22 * 0.99) : null,
+        sell: g22 ? Math.round(g22) : null,
+      },
+      {
+        name: 'Silver Coin 50 GMS (999 Pure)',
+        sub: 'Gift & Pooja Certified Coin',
+        buy: s1kg ? Math.round((s1kg / 1000) * 50 * 0.97) : null,
+        sell: s1kg ? Math.round((s1kg / 1000) * 50 * 1.03) : null,
+      },
+      {
+        name: 'Silver Coin 10 GMS (999 Pure)',
+        sub: 'Retail & Festive Ready Stock',
+        buy: s1kg ? Math.round((s1kg / 1000) * 10 * 0.97) : null,
+        sell: s1kg ? Math.round((s1kg / 1000) * 10 * 1.04) : null,
+      },
+    ];
+  }, [rates, gold995Ask, silverPetiAsk]);
 
   const compareRows = [
-    { key: 'gold995', label: 'Gold 995 (10g)' },
-    { key: 'gold916', label: '22K 916 (10g)' },
-    { key: 'gold18k', label: '18K 750 (10g)' },
-    { key: 'silverPeti', label: 'Silver 1KG' },
+    { key: 'gold995', label: 'GOLD 995 (10g)' },
+    { key: 'gold916', label: '22K 916 HUID' },
+    { key: 'gold18k', label: '18K 750 HUID' },
+    { key: 'silverPeti', label: 'SILVER PETI 1KG' },
+    { key: 'silverChorsa', label: 'SILVER CHORSA' },
   ];
 
-  const lastUpdatedText = rates?.timestamp
-    ? new Date(rates.timestamp).toLocaleTimeString('en-IN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      })
-    : '--:--:--';
+  const contactPhone = siteConfig?.contactPhone || APP_INFO.contactPhone;
+  const whatsappNumber = String(
+    siteConfig?.whatsappNumber || APP_INFO.whatsappPhone || '919351214851'
+  ).replace(/\D/g, '');
+
+  const marqueeText =
+    siteConfig?.marketStatusText
+      ? `${siteConfig.marketStatusText} • ONLINE TRADING HOURS: 09:10 AM TO 11:50 PM • कृपया अपने सौदे समय पर लॉक करें • BOOKING NUMBER: ${contactPhone}`
+      : `ONLINE TRADING HOURS: 09:10 AM TO 11:50 PM • कृपया अपने सौदे समय पर लॉक करें • Ready Stock (3% GST Paid) • BOOKING NUMBER: ${contactPhone}`;
 
   return (
-    <div className="space-y-4 pb-28">
-      {/* 1. Market Pulse & Gold/Silver Ratio Ticker */}
-      <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar rounded-2xl border border-zinc-200 dark:border-[#D4AF37]/20 bg-white dark:bg-[#10141F] px-3.5 py-2.5 text-[11px] shadow-sm">
-        <div className="flex shrink-0 items-center gap-1.5 pr-2.5 border-r border-zinc-200 dark:border-white/10">
-          <span
-            className={`h-2 w-2 rounded-full ${
-              streamStatus === 'LIVE' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
-            }`}
-          />
-          <span className="font-bold tracking-wider uppercase text-zinc-900 dark:text-[#E6CB94]">
-            {streamStatus === 'LIVE' ? '24H LIVE' : streamStatus}
-          </span>
+    <div className="space-y-3 pb-28">
+      {/* 1. HB & Mosun Exact Scrolling Marquee */}
+      <div className="overflow-hidden rounded-xl border border-[#3D2E1A] bg-[#15100B] py-1.5 px-2 text-[11px] font-medium text-[#E5C158]">
+        <div className="animate-marquee gap-10">
+          <span>● {marqueeText}</span>
+          <span>● {marqueeText}</span>
         </div>
-
-        {spot.xauUsd && (
-          <div className="shrink-0 pr-2.5 border-r border-zinc-200 dark:border-white/10">
-            <span className="text-zinc-500">XAU </span>
-            <span className="font-mono-price font-bold text-zinc-900 dark:text-zinc-100">
-              ${spot.xauUsd.toFixed(2)}
-            </span>
-          </div>
-        )}
-        {spot.xagUsd && (
-          <div className="shrink-0 pr-2.5 border-r border-zinc-200 dark:border-white/10">
-            <span className="text-zinc-500">XAG </span>
-            <span className="font-mono-price font-bold text-zinc-900 dark:text-zinc-100">
-              ${spot.xagUsd.toFixed(2)}
-            </span>
-          </div>
-        )}
-        {spot.usdInr && (
-          <div className="shrink-0 pr-2.5 border-r border-zinc-200 dark:border-white/10">
-            <span className="text-zinc-500">USD/INR </span>
-            <span className="font-mono-price font-bold text-zinc-900 dark:text-zinc-100">
-              ₹{spot.usdInr.toFixed(2)}
-            </span>
-          </div>
-        )}
-        {goldSilverRatio && (
-          <div className="shrink-0 pr-2.5 border-r border-zinc-200 dark:border-white/10">
-            <span className="text-zinc-500">Au/Ag </span>
-            <span className="font-mono-price font-bold text-[#9A7422] dark:text-[#E6CB94]">
-              {goldSilverRatio}x
-            </span>
-          </div>
-        )}
-        {spot.mcxGold && (
-          <div className="shrink-0">
-            <span className="text-zinc-500">MCX G </span>
-            <span className="font-mono-price font-bold text-[#9A7422] dark:text-[#D4AF37]">
-              {formatINR(spot.mcxGold)}
-            </span>
-          </div>
-        )}
       </div>
 
-      {/* 2. Pinned Watchlist Carousel */}
-      {pinnedCards.length > 0 && (
-        <div>
-          <div className="mb-1.5 flex items-center justify-between px-1">
-            <span className="text-[10px] font-bold tracking-[0.18em] text-[#9A7422] dark:text-[#D4AF37] uppercase">
-              ★ Pinned Watchlist
-            </span>
-            <span className="text-[10px] text-zinc-500">{lastUpdatedText} IST</span>
+      {/* 2. Top 3-Column Comex & Spot Ticker Strip (Exact Mosun Style) */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="rounded-xl border border-[#3D2E1A] bg-[#15100B] p-2.5">
+          <div className="flex items-center justify-between text-[9px] font-bold tracking-wider text-[#E5C158] uppercase">
+            <span>GOLD COMEX</span>
+            <span className="h-1.5 w-1.5 rounded-full bg-[#148A14]" />
           </div>
-          <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
-            {pinnedCards.map(({ entry, termId, item }) => {
-              const askVal = scalePrice(item.ask || item.bid, item.unit, unit);
-              const termLabel =
-                termId === 'HB' ? 'Jodhpur' : termId === 'MOSUN' ? 'Sujangarh' : 'IBJA';
-              return (
-                <button
-                  key={entry}
-                  type="button"
-                  onClick={() =>
-                    onOpenCalculator({ terminal: termId, metalKey: item.key, customAsk: item.ask })
-                  }
-                  className="relative min-w-[165px] shrink-0 overflow-hidden rounded-2xl border border-zinc-200 dark:border-[#D4AF37]/30 bg-white dark:bg-[#10141F] p-3 text-left shadow-sm"
-                >
-                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/60 to-transparent" />
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span className="font-bold uppercase text-[#9A7422] dark:text-[#D4AF37]">
-                      {termLabel}
-                    </span>
-                    <span className="text-zinc-400">
-                      {unit === '10g' ? item.unit : unit}
-                    </span>
-                  </div>
-                  <div className="mt-1 truncate text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                    {item.name}
-                  </div>
-                  <div className="font-mono-price mt-1.5 text-lg font-extrabold text-zinc-900 dark:text-[#E6CB94]">
-                    {formatINR(askVal)}
-                  </div>
-                </button>
-              );
-            })}
+          <div className="font-mono-price mt-1 inline-block rounded bg-[#148A14] px-1.5 py-0.5 text-sm font-bold text-white">
+            {spot.xauUsd ? `$${spot.xauUsd.toFixed(2)}` : '$--'}
+          </div>
+          <div className="mt-1 flex justify-between text-[9px] text-zinc-400">
+            <span>MCX G</span>
+            <span className="text-zinc-200">{spot.mcxGold ? `₹${formatNum(spot.mcxGold)}` : '--'}</span>
           </div>
         </div>
-      )}
 
-      {/* 3. Terminal & Compare Switcher */}
-      <div className="grid grid-cols-4 gap-1 rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-1 shadow-sm">
+        <div className="rounded-xl border border-[#3D2E1A] bg-[#15100B] p-2.5">
+          <div className="flex items-center justify-between text-[9px] font-bold tracking-wider text-[#E5C158] uppercase">
+            <span>SILVER COMEX</span>
+            <span className="h-1.5 w-1.5 rounded-full bg-[#148A14]" />
+          </div>
+          <div className="font-mono-price mt-1 inline-block rounded bg-[#148A14] px-1.5 py-0.5 text-sm font-bold text-white">
+            {spot.xagUsd ? `$${spot.xagUsd.toFixed(2)}` : '$--'}
+          </div>
+          <div className="mt-1 flex justify-between text-[9px] text-zinc-400">
+            <span>MCX S</span>
+            <span className="text-zinc-200">{spot.mcxSilver ? `₹${formatNum(spot.mcxSilver)}` : '--'}</span>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-[#3D2E1A] bg-[#15100B] p-2.5">
+          <div className="flex items-center justify-between text-[9px] font-bold tracking-wider text-[#E5C158] uppercase">
+            <span>INR SPOT</span>
+            <span className="rounded border border-[#D4AF37]/40 px-1 text-[8px] text-[#D4AF37]">
+              {streamStatus === 'LIVE' ? 'LIVE' : 'SYNC'}
+            </span>
+          </div>
+          <div className="font-mono-price mt-1 text-base font-extrabold text-white">
+            {spot.usdInr ? `₹${spot.usdInr.toFixed(2)}` : '--'}
+          </div>
+          <div className="mt-1 flex justify-between text-[9px] text-zinc-400">
+            <span>Au/Ag</span>
+            <span className="text-[#E5C158]">
+              {spot.xauUsd && spot.xagUsd ? `${(spot.xauUsd / spot.xagUsd).toFixed(1)}x` : '--'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Terminal Switcher (HB Jodhpur / Mosun Sujangarh / IBJA / Compare) */}
+      <div className="grid grid-cols-4 gap-1 rounded-xl border border-[#3D2E1A] bg-[#15100B] p-1">
         {TERMINAL_TABS.map((tab) => {
           const active = currentTerm === tab.id;
           return (
@@ -211,292 +203,389 @@ export default function LiveRatesTab({
               key={tab.id}
               type="button"
               onClick={() => onSelectTerminal(tab.id)}
-              className={`relative z-10 flex items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-bold transition-colors ${
-                active ? 'text-[#07090F]' : 'text-zinc-500 dark:text-zinc-400'
+              className={`relative z-10 flex items-center justify-center gap-1 rounded-lg py-2 text-[10px] font-bold tracking-wide transition ${
+                active ? 'text-[#0B0907]' : 'text-zinc-300 hover:text-[#E5C158]'
               }`}
             >
               {active && (
                 <motion.span
-                  layoutId="rich-term-pill"
-                  transition={{ type: 'spring', stiffness: 440, damping: 32 }}
-                  className="absolute inset-0 -z-10 rounded-xl bg-gradient-to-r from-[#E6CB94] to-[#C9A452]"
+                  layoutId="hm-term-pill"
+                  transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                  className="absolute inset-0 -z-10 rounded-lg bg-gradient-to-r from-[#E5C158] to-[#C69749]"
                 />
               )}
               {tab.id === 'COMPARE' && <Columns3 className="h-3 w-3" />}
-              {tab.label}
+              <span className="truncate px-0.5">{tab.label}</span>
             </button>
           );
         })}
       </div>
 
-      {/* 4. Custom Luxury Dropdowns (Filter + Unit) & Controls */}
-      <div className="flex items-center gap-2">
-        <LuxurySelect
-          compact
-          className="flex-1"
-          value={filterMode}
-          onChange={setFilterMode}
-          options={[
-            { value: 'ALL', label: `Filter: All (${rawList.length})` },
-            { value: 'gold', label: 'Gold Only' },
-            { value: 'silver', label: 'Silver Only' },
-            { value: 'RTGS', label: 'RTGS Rates' },
-            { value: 'CASH', label: 'Cash Rates' },
-          ]}
-        />
+      {/* 4. Category Bar (BULLION | JEWELLERY HUID | COINS) + Unit Toggle + Tools */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-1 rounded-xl border border-[#3D2E1A] bg-[#15100B] p-1">
+          {[
+            { id: 'BULLION', label: 'BULLION' },
+            { id: 'JEWELLERY', label: 'JEWELLERY HUID' },
+            { id: 'COINS', label: 'COINS' },
+          ].map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              onClick={() => setSubView(v.id)}
+              className={`rounded-lg px-2.5 py-1 text-[10px] font-bold transition ${
+                subView === v.id
+                  ? 'bg-[#D4AF37]/20 text-[#E5C158] border border-[#D4AF37]/40'
+                  : 'text-zinc-400'
+              }`}
+            >
+              {v.label}
+            </button>
+          ))}
+        </div>
 
-        <LuxurySelect
-          compact
-          className="w-32"
-          value={unit}
-          onChange={onUnitChange}
-          options={[
-            { value: '10g', label: 'Unit: 10g' },
-            { value: '1g', label: 'Unit: 1g' },
-            { value: 'tola', label: 'Unit: Tola' },
-          ]}
-        />
+        <div className="flex items-center gap-1.5">
+          <div className="flex rounded-xl border border-[#3D2E1A] bg-[#15100B] p-0.5 text-[10px] font-bold">
+            {['10g', '1g', 'tola'].map((u) => (
+              <button
+                key={u}
+                type="button"
+                onClick={() => onUnitChange?.(u)}
+                className={`rounded-lg px-2 py-1 uppercase transition ${
+                  unit === u ? 'bg-[#E5C158] text-[#0B0907]' : 'text-zinc-400'
+                }`}
+              >
+                {u}
+              </button>
+            ))}
+          </div>
 
-        <button
-          type="button"
-          onClick={() => onOpenCalculator({ terminal: currentTerm === 'COMPARE' ? 'HB' : currentTerm, metalKey: 'gold995' })}
-          aria-label="Open Calculator"
-          className="rounded-xl border border-zinc-200 dark:border-[#D4AF37]/30 bg-white dark:bg-[#10141F] p-2 text-[#9A7422] dark:text-[#E6CB94]"
-        >
-          <Calculator className="h-4 w-4" />
-        </button>
-        <button
-          type="button"
-          onClick={onToggleAudio}
-          aria-label="Toggle tick sound"
-          className={`rounded-xl border p-2 ${
-            tickAudio
-              ? 'border-[#D4AF37]/50 bg-[#D4AF37]/15 text-[#D4AF37]'
-              : 'border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] text-zinc-500'
-          }`}
-        >
-          {tickAudio ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-        </button>
-        <button
-          type="button"
-          onClick={onManualRefresh}
-          aria-label="Refresh rates"
-          className="rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-2 text-zinc-500 dark:text-zinc-300"
-        >
-          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin text-[#D4AF37]' : ''}`} />
-        </button>
+          <button
+            type="button"
+            onClick={() =>
+              onOpenCalculator?.({ terminal: currentTerm === 'COMPARE' ? 'HB' : currentTerm })
+            }
+            aria-label="Calculator"
+            className="rounded-xl border border-[#3D2E1A] bg-[#15100B] p-1.5 text-[#E5C158]"
+          >
+            <Calculator className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={onToggleAudio}
+            aria-label="Tick sound"
+            className={`rounded-xl border p-1.5 ${
+              tickAudio
+                ? 'border-[#D4AF37]/60 bg-[#D4AF37]/15 text-[#E5C158]'
+                : 'border-[#3D2E1A] bg-[#15100B] text-zinc-400'
+            }`}
+          >
+            {tickAudio ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+          </button>
+          <button
+            type="button"
+            onClick={onManualRefresh}
+            aria-label="Refresh rates"
+            className="rounded-xl border border-[#3D2E1A] bg-[#15100B] p-1.5 text-zinc-300"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin text-[#E5C158]' : ''}`} />
+          </button>
+        </div>
       </div>
 
-      {/* 5. Content: 3-Terminal Compare Matrix OR Selected Terminal All Rates */}
+      {/* 5. Main Board: Compare Matrix OR Coins Catalog OR Exact HB/Mosun PRODUCTS | BUY | SELL Table */}
       <AnimatePresence mode="wait">
         {currentTerm === 'COMPARE' ? (
           <motion.div
             key="COMPARE"
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="space-y-3"
+            className="overflow-hidden rounded-2xl border border-[#3D2E1A] bg-[#15100B]"
           >
-            {compareRows.map((row) => {
-              const jdr = scalePrice(
-                rates?.HB?.items?.[row.key]?.ask || rates?.HB?.items?.[row.key]?.bid,
-                rates?.HB?.items?.[row.key]?.unit,
-                unit
-              );
-              const sjg = scalePrice(
-                rates?.MOSUN?.items?.[row.key]?.ask || rates?.MOSUN?.items?.[row.key]?.bid,
-                rates?.MOSUN?.items?.[row.key]?.unit,
-                unit
-              );
-              const ibja = scalePrice(
-                rates?.IBJA?.items?.[row.key]?.ask || rates?.IBJA?.items?.[row.key]?.bid,
-                rates?.IBJA?.items?.[row.key]?.unit,
-                unit
-              );
-              const diff = jdr && sjg ? jdr - sjg : null;
-
-              return (
-                <div
-                  key={row.key}
-                  className="rounded-2xl border border-zinc-200 dark:border-[#D4AF37]/25 bg-white dark:bg-[#10141F] p-4 shadow-sm"
-                >
-                  <div className="mb-3 flex items-center justify-between">
-                    <span className="font-serif-luxury text-sm font-bold text-zinc-900 dark:text-[#E6CB94]">
-                      {row.label}
+            <div className="grid grid-cols-4 bg-[#F5F0E6] px-3 py-2 text-[10px] font-extrabold tracking-wider text-[#0B0907] uppercase">
+              <span>PRODUCT</span>
+              <span className="text-right">HB JDR</span>
+              <span className="text-right">MOSUN SJG</span>
+              <span className="text-right">IBJA</span>
+            </div>
+            <div className="divide-y divide-[#2B2012]">
+              {compareRows.map((row) => {
+                const jdr = scalePrice(
+                  rates?.HB?.items?.[row.key]?.ask || rates?.HB?.items?.[row.key]?.bid,
+                  rates?.HB?.items?.[row.key]?.unit,
+                  unit
+                );
+                const sjg = scalePrice(
+                  rates?.MOSUN?.items?.[row.key]?.ask || rates?.MOSUN?.items?.[row.key]?.bid,
+                  rates?.MOSUN?.items?.[row.key]?.unit,
+                  unit
+                );
+                const ibja = scalePrice(
+                  rates?.IBJA?.items?.[row.key]?.ask || rates?.IBJA?.items?.[row.key]?.bid,
+                  rates?.IBJA?.items?.[row.key]?.unit,
+                  unit
+                );
+                return (
+                  <div key={row.key} className="grid grid-cols-4 items-center px-3 py-3 text-xs">
+                    <span className="font-bold text-[#E5C158]">{row.label}</span>
+                    <span className="font-mono-price text-right font-bold text-white">
+                      {jdr ? `₹${formatNum(jdr)}` : '--'}
                     </span>
-                    {diff !== null && (
-                      <span className="font-mono-price rounded-full bg-[#D4AF37]/15 px-2.5 py-0.5 text-[10px] font-bold text-[#9A7422] dark:text-[#E6CB94]">
-                        JDR vs SJG: {diff >= 0 ? '+' : '-'}
-                        {formatINR(Math.abs(diff))}
-                      </span>
-                    )}
+                    <span className="font-mono-price text-right font-bold text-emerald-400">
+                      {sjg ? `₹${formatNum(sjg)}` : '--'}
+                    </span>
+                    <span className="font-mono-price text-right font-bold text-zinc-300">
+                      {ibja ? `₹${formatNum(ibja)}` : '--'}
+                    </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="rounded-xl bg-zinc-50 dark:bg-[#07090F] p-2.5">
-                      <div className="text-[9px] font-bold uppercase text-zinc-400">Jodhpur</div>
-                      <div className="font-mono-price mt-1 text-sm font-extrabold text-zinc-900 dark:text-[#E6CB94]">
-                        {formatINR(jdr)}
-                      </div>
-                    </div>
-                    <div className="rounded-xl bg-zinc-50 dark:bg-[#07090F] p-2.5">
-                      <div className="text-[9px] font-bold uppercase text-zinc-400">Sujangarh</div>
-                      <div className="font-mono-price mt-1 text-sm font-extrabold text-zinc-900 dark:text-sky-300">
-                        {formatINR(sjg)}
-                      </div>
-                    </div>
-                    <div className="rounded-xl bg-zinc-50 dark:bg-[#07090F] p-2.5">
-                      <div className="text-[9px] font-bold uppercase text-zinc-400">IBJA</div>
-                      <div className="font-mono-price mt-1 text-sm font-extrabold text-emerald-600 dark:text-emerald-300">
-                        {formatINR(ibja)}
-                      </div>
-                    </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        ) : subView === 'COINS' ? (
+          <motion.div
+            key="COINS"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="overflow-hidden rounded-2xl border border-[#3D2E1A] bg-[#15100B]"
+          >
+            <div className="grid grid-cols-12 bg-[#F5F0E6] px-3 py-2 text-[10px] font-extrabold tracking-wider text-[#0B0907] uppercase">
+              <span className="col-span-6">COINS &amp; BARS</span>
+              <span className="col-span-3 text-right">BUY</span>
+              <span className="col-span-3 text-right">SELL</span>
+            </div>
+            <div className="divide-y divide-[#2B2012]">
+              {coinsCatalog.map((c) => (
+                <div key={c.name} className="grid grid-cols-12 items-center px-3 py-3">
+                  <div className="col-span-6 pr-2">
+                    <div className="text-xs font-bold text-[#E5C158]">{c.name}</div>
+                    <div className="text-[10px] text-zinc-400">{c.sub}</div>
+                  </div>
+                  <div className="col-span-3 text-right font-mono-price text-sm font-bold text-zinc-200">
+                    {formatNum(c.buy)}
+                  </div>
+                  <div className="col-span-3 flex justify-end">
+                    <span className="font-mono-price rounded-lg bg-[#148A14] px-2.5 py-1 text-sm font-extrabold text-white">
+                      {formatNum(c.sell)}
+                    </span>
                   </div>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </motion.div>
         ) : (
           <motion.div
-            key={`${currentTerm}_${filterMode}_${unit}`}
-            initial={{ opacity: 0, y: 8 }}
+            key={`${currentTerm}_${subView}_${unit}`}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.18 }}
-            className="space-y-2.5"
+            transition={{ duration: 0.16 }}
+            className="overflow-hidden rounded-2xl border border-[#3D2E1A] bg-[#15100B] shadow-xl"
           >
-            <div className="flex items-center justify-between px-1">
-              <div>
-                <h3 className="font-serif-luxury text-base font-bold text-zinc-900 dark:text-[#E6CB94]">
-                  {termMeta.full}
-                </h3>
-                <p className="text-[10px] text-zinc-500">{termMeta.subtitle}</p>
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                Ask / Sell Hero
+            {/* Exact HB & Mosun Pale Cream Column Bar */}
+            <div className="grid grid-cols-12 items-center bg-[#F5F0E6] px-3 py-2 text-[10px] font-extrabold tracking-wider text-[#0B0907] uppercase">
+              <span className="col-span-6">
+                PRODUCTS <span className="font-semibold lowercase opacity-70">({unit})</span>
               </span>
+              <span className="col-span-3 text-right">BUY</span>
+              <span className="col-span-3 text-right">SELL</span>
             </div>
 
             {filteredList.length === 0 ? (
-              <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] py-10 text-center text-xs text-zinc-500">
-                No matching rates for this filter.
+              <div className="py-10 text-center text-xs text-zinc-400">
+                Live Rate currently updating...
               </div>
             ) : (
-              filteredList.map((item) => {
-                const tickDir = ticks?.[`${currentTerm}_${item.key}`];
-                const flashClass =
-                  tickDir === 'up'
-                    ? 'animate-tick-up'
-                    : tickDir === 'down'
-                    ? 'animate-tick-down'
-                    : '';
-                const askVal = scalePrice(item.ask || item.bid, item.unit, unit);
-                const bidVal = scalePrice(item.bid, item.unit, unit);
-                const highVal = scalePrice(item.high, item.unit, unit);
-                const lowVal = scalePrice(item.low, item.unit, unit);
-                const watchKey = `${currentTerm}:${item.key}`;
-                const isStarred = watchlist.includes(watchKey);
+              <div className="divide-y divide-[#2B2012]">
+                {filteredList.map((item) => {
+                  const tickDir = ticks?.[`${currentTerm}_${item.key}`];
+                  const flashClass =
+                    tickDir === 'up'
+                      ? 'animate-tick-up'
+                      : tickDir === 'down'
+                      ? 'animate-tick-down'
+                      : '';
+                  const askVal = scalePrice(item.ask || item.bid, item.unit, unit);
+                  const bidVal = scalePrice(item.bid, item.unit, unit);
+                  const highVal = scalePrice(item.high, item.unit, unit);
+                  const lowVal = scalePrice(item.low, item.unit, unit);
+                  const watchKey = `${currentTerm}:${item.key}`;
+                  const isStarred = watchlist.includes(watchKey);
+                  const highlightSell =
+                    tickDir === 'down'
+                      ? 'bg-[#DC2626] text-white'
+                      : tickDir === 'up' ||
+                        /gold995|gold995_rtgs|silverPeti/.test(item.key)
+                      ? 'bg-[#148A14] text-white'
+                      : 'border border-[#4A371E] bg-[#1F170E] text-white';
 
-                return (
-                  <div
-                    key={item.key}
-                    onClick={() =>
-                      onOpenCalculator({
-                        terminal: currentTerm,
-                        metalKey: item.key,
-                        customAsk: item.ask || item.bid,
-                      })
-                    }
-                    className={`relative flex items-center justify-between rounded-2xl border border-zinc-200 dark:border-[#D4AF37]/20 bg-white dark:bg-[#10141F] px-3.5 py-3.5 shadow-sm transition active:scale-[0.99] cursor-pointer ${flashClass}`}
-                  >
-                    <div className="min-w-0 flex-1 pr-2">
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          aria-label="Pin to watchlist"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleWatchlist(watchKey);
-                          }}
-                          className="shrink-0 p-0.5"
-                        >
-                          <Star
-                            className={`h-3.5 w-3.5 ${
-                              isStarred
-                                ? 'fill-[#D4AF37] text-[#D4AF37]'
-                                : 'text-zinc-400 hover:text-[#D4AF37]'
-                            }`}
-                          />
-                        </button>
-                        <span className="truncate text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                          {item.name}
-                        </span>
-                      </div>
-
-                      <div className="mt-1 flex flex-wrap items-center gap-1.5 pl-5 text-[10px] text-zinc-500">
-                        <span className="rounded-md bg-[#D4AF37]/12 px-1.5 py-0.5 font-semibold text-[#9A7422] dark:text-[#D4AF37]">
-                          {item.tag}
-                        </span>
-                        {highVal && <span className="font-mono-price">H:{formatINR(highVal)}</span>}
-                        {lowVal && <span className="font-mono-price">L:{formatINR(lowVal)}</span>}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2.5 shrink-0">
-                      <div className="text-right">
-                        <div className="font-mono-price text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-                          {formatINR(bidVal)}
-                        </div>
-                        <div className="text-[9px] uppercase text-zinc-400">Bid</div>
-                      </div>
-
-                      <div className="text-right min-w-[98px]">
-                        <div className="flex items-center justify-end gap-0.5">
-                          {tickDir === 'up' && (
-                            <ArrowUpRight className="h-3.5 w-3.5 text-emerald-500" />
-                          )}
-                          {tickDir === 'down' && (
-                            <ArrowDownRight className="h-3.5 w-3.5 text-red-500" />
-                          )}
-                          <span
-                            className={`font-mono-price text-xl font-extrabold tracking-tight ${
-                              tickDir === 'up'
-                                ? 'text-emerald-500'
-                                : tickDir === 'down'
-                                ? 'text-red-500'
-                                : 'text-zinc-900 dark:text-[#E6CB94]'
-                            }`}
+                  return (
+                    <div
+                      key={item.key}
+                      onClick={() =>
+                        onOpenCalculator?.({
+                          terminal: currentTerm,
+                          metalKey: item.key,
+                          customAsk: item.ask || item.bid,
+                        })
+                      }
+                      className={`grid grid-cols-12 items-center px-3 py-3 cursor-pointer active:bg-[#1E170F] transition ${flashClass}`}
+                    >
+                      <div className="col-span-6 min-w-0 pr-2">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            aria-label="Pin rate"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onToggleWatchlist?.(watchKey);
+                            }}
+                            className="shrink-0"
                           >
-                            {formatINR(askVal)}
+                            <Star
+                              className={`h-3 w-3 ${
+                                isStarred ? 'fill-[#E5C158] text-[#E5C158]' : 'text-zinc-600'
+                              }`}
+                            />
+                          </button>
+                          <span className="truncate text-xs font-extrabold tracking-wide text-[#E5C158] uppercase">
+                            {item.name}
                           </span>
                         </div>
-                        <div className="text-[9px] font-bold uppercase tracking-wider text-[#9A7422] dark:text-[#D4AF37]/80">
-                          Ask / Sell
+
+                        <div className="mt-1 flex items-center gap-1.5 pl-4 text-[9px] text-zinc-400">
+                          <span className="truncate">{item.tag}</span>
+                          <button
+                            type="button"
+                            aria-label={`Alert for ${item.name}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenAlertFor?.({
+                                terminal: currentTerm,
+                                metalKey: item.key,
+                                currentAsk: item.ask || item.bid,
+                              });
+                            }}
+                            className="text-zinc-500 hover:text-[#E5C158]"
+                          >
+                            <Bell className="h-2.5 w-2.5" />
+                          </button>
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        aria-label={`Set alert for ${item.name}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenAlertFor({
-                            terminal: currentTerm,
-                            metalKey: item.key,
-                            currentAsk: item.ask || item.bid,
-                          });
-                        }}
-                        className="rounded-xl border border-zinc-200 dark:border-white/10 p-1.5 text-zinc-400 hover:border-[#D4AF37]/40 hover:text-[#D4AF37]"
-                      >
-                        <Bell className="h-3.5 w-3.5" />
-                      </button>
+                      <div className="col-span-3 text-right pr-1">
+                        <div className="font-mono-price text-sm font-bold text-white">
+                          {formatNum(bidVal)}
+                        </div>
+                        <div className="font-mono-price text-[9px] text-zinc-500">
+                          L: {lowVal ? formatNum(lowVal) : '--'}
+                        </div>
+                      </div>
+
+                      <div className="col-span-3 flex flex-col items-end">
+                        <span
+                          className={`font-mono-price rounded-lg px-2 py-1 text-base font-extrabold leading-none ${highlightSell}`}
+                        >
+                          {formatNum(askVal)}
+                        </span>
+                        <div className="font-mono-price mt-1 text-[9px] text-emerald-400/90">
+                          H: {highVal ? formatNum(highVal) : '--'}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })
+                  );
+                })}
+              </div>
             )}
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* 6. Bottom 2-Column GOLD CURRENT & SILVER CURRENT Spot Cards (Exact Mosun Style) */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="rounded-xl border border-[#3D2E1A] bg-[#15100B] p-3">
+          <div className="flex items-center justify-between text-[10px] font-bold text-[#E5C158]">
+            <span>● GOLD CURRENT</span>
+            <span className="text-[9px] text-zinc-400">RTGS</span>
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-2 text-center">
+            <div className="rounded-lg bg-[#0B0907] py-1.5">
+              <div className="text-[8px] font-bold text-zinc-400 uppercase">BID</div>
+              <div className="font-mono-price text-xs font-extrabold text-white">
+                {formatNum(gold995Bid)}
+              </div>
+            </div>
+            <div className="rounded-lg bg-[#0B0907] py-1.5">
+              <div className="text-[8px] font-bold text-zinc-400 uppercase">ASK</div>
+              <div className="font-mono-price text-xs font-extrabold text-emerald-400">
+                {formatNum(gold995Ask)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-[#3D2E1A] bg-[#15100B] p-3">
+          <div className="flex items-center justify-between text-[10px] font-bold text-[#E5C158]">
+            <span>● SILVER CURRENT</span>
+            <span className="text-[9px] text-zinc-400">1 KG</span>
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-2 text-center">
+            <div className="rounded-lg bg-[#0B0907] py-1.5">
+              <div className="text-[8px] font-bold text-zinc-400 uppercase">BID</div>
+              <div className="font-mono-price text-xs font-extrabold text-white">
+                {formatNum(silverPetiBid)}
+              </div>
+            </div>
+            <div className="rounded-lg bg-[#0B0907] py-1.5">
+              <div className="text-[8px] font-bold text-zinc-400 uppercase">ASK</div>
+              <div className="font-mono-price text-xs font-extrabold text-emerald-400">
+                {formatNum(silverPetiAsk)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 7. HB & Mosun Booking Number Strip + Bank Details */}
+      <div className="flex items-center justify-between gap-2 rounded-xl border border-[#3D2E1A] bg-[#15100B] px-3.5 py-2.5">
+        <div className="min-w-0">
+          <div className="text-[9px] font-bold tracking-widest text-[#E5C158] uppercase">
+            DIRECT BOOKING DESK
+          </div>
+          <div className="font-mono-price text-sm font-extrabold text-white">
+            {contactPhone}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onOpenBankDetails}
+            aria-label="Bank Details"
+            className="flex items-center gap-1 rounded-lg border border-[#D4AF37]/40 bg-[#0B0907] px-2.5 py-2 text-[10px] font-bold text-[#E5C158]"
+          >
+            <Landmark className="h-3.5 w-3.5" />
+            Bank
+          </button>
+          <a
+            href={`https://wa.me/${whatsappNumber}`}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="WhatsApp Booking"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#148A14] text-white"
+          >
+            <MessageCircle className="h-4 w-4" />
+          </a>
+          <a
+            href={`tel:${contactPhone.replace(/\s+/g, '')}`}
+            aria-label="Call Booking Desk"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#E5C158] to-[#C69749] text-[#0B0907]"
+          >
+            <Phone className="h-4 w-4" />
+          </a>
+        </div>
+      </div>
     </div>
   );
 }

@@ -21,8 +21,8 @@ export function LegalDocumentModal({ docType, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#F6F7F9] dark:bg-[#07090F] safe-top safe-bottom">
-      <header className="flex items-center justify-between border-b border-zinc-200 dark:border-white/10 px-4 py-3.5 bg-white dark:bg-[#10141F]">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#F6F7F9] dark:bg-[#0B0907] safe-top safe-bottom">
+      <header className="flex items-center justify-between border-b border-zinc-200 dark:border-white/10 px-4 py-3.5 bg-white dark:bg-[#15100B]">
         <button
           onClick={onClose}
           className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-semibold text-[#9A7422] dark:text-[#D4AF37]"

@@ -40,11 +40,11 @@ export function LuxurySelect({
         type="button"
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          'flex w-full items-center justify-between gap-2 rounded-xl border border-zinc-200 dark:border-[#D4AF37]/30 bg-white dark:bg-[#0D111A] text-left transition hover:border-[#D4AF37]/60 focus:outline-none',
+          'flex w-full items-center justify-between gap-2 rounded-xl border border-zinc-200 dark:border-[#3D2E1A] bg-white dark:bg-[#0B0907] text-left transition hover:border-[#D4AF37]/60 focus:outline-none',
           compact ? 'px-3 py-1.5 text-[11px]' : 'px-3.5 py-2.5 text-xs'
         )}
       >
-        <span className="truncate font-semibold text-zinc-900 dark:text-[#F4EFE6]">
+        <span className="truncate font-semibold text-zinc-900 dark:text-[#F5F2EB]">
           {selected?.label || placeholder}
         </span>
         <ChevronDown
@@ -62,7 +62,7 @@ export function LuxurySelect({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto rounded-2xl border border-zinc-200 dark:border-[#D4AF37]/35 bg-white/98 dark:bg-[#10141F]/98 p-1.5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.65)] backdrop-blur-xl"
+            className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto rounded-2xl border border-zinc-200 dark:border-[#4A371E] bg-white/98 dark:bg-[#15100B]/98 p-1.5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.75)] backdrop-blur-xl"
           >
             {options.map((opt) => {
               const active = opt.value === value;

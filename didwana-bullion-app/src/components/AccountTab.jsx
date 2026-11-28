@@ -19,6 +19,7 @@ import {
   MessageCircle,
   RefreshCw,
   Crown,
+  Landmark,
 } from 'lucide-react';
 import { APP_INFO } from '../config/constants';
 import { authApi } from '../services/api';
@@ -34,6 +35,7 @@ export default function AccountTab({
   onSignOut,
   isAdmin = false,
   onOpenAdminPanel,
+  onOpenBankDetails,
   siteConfig,
 }) {
   const [showChangePw, setShowChangePw] = useState(false);
@@ -138,7 +140,7 @@ export default function AccountTab({
   return (
     <div className="space-y-4 pb-28">
       {/* Rich Profile Card */}
-      <div className="relative overflow-hidden rounded-3xl border border-[#D4AF37]/30 bg-white dark:bg-[#10141F] p-4 shadow-sm">
+      <div className="relative overflow-hidden rounded-3xl border border-[#D4AF37]/30 bg-white dark:bg-[#15100B] p-4 shadow-sm">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#E6CB94]/60 to-transparent" />
         <div className="flex items-center gap-3.5">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#D4AF37]/15 text-[#9A7422] dark:text-[#E6CB94]">
@@ -184,21 +186,21 @@ export default function AccountTab({
               </div>
             </div>
           </div>
-          <span className="rounded-full bg-[#D4AF37] px-2.5 py-1 text-[10px] font-bold text-[#07090F]">
+          <span className="rounded-full bg-[#D4AF37] px-2.5 py-1 text-[10px] font-bold text-[#0B0907]">
             OPEN
           </span>
         </button>
       )}
 
       {/* Showroom Desk (Call & WhatsApp like HB Jodhpur) */}
-      <div className="rounded-2xl border border-zinc-200 dark:border-[#D4AF37]/20 bg-white dark:bg-[#10141F] p-4 space-y-3 shadow-sm">
+      <div className="rounded-2xl border border-zinc-200 dark:border-[#D4AF37]/20 bg-white dark:bg-[#15100B] p-4 space-y-3 shadow-sm">
         <h3 className="font-serif-luxury text-sm font-bold text-[#9A7422] dark:text-[#E6CB94]">
           New Monika Jewellers — Trade Desk
         </h3>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <a
             href={`tel:${(siteConfig?.contactPhone || APP_INFO.contactPhone).replace(/\s+/g, '')}`}
-            className="flex items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#07090F] py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200"
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-zinc-200 dark:border-[#3D2E1A] bg-zinc-50 dark:bg-[#0B0907] py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200"
           >
             <Phone className="h-3.5 w-3.5 text-[#D4AF37]" />
             Call Desk
@@ -207,11 +209,19 @@ export default function AccountTab({
             href={`https://wa.me/${String(siteConfig?.whatsappNumber || APP_INFO.whatsappPhone || '919351214851').replace(/\D/g, '')}`}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600/15 border border-emerald-500/30 py-2.5 text-xs font-bold text-emerald-600 dark:text-emerald-400"
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-[#148A14] py-2.5 text-xs font-bold text-white"
           >
             <MessageCircle className="h-3.5 w-3.5" />
-            WhatsApp Desk
+            WhatsApp
           </a>
+          <button
+            type="button"
+            onClick={onOpenBankDetails}
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-[#D4AF37]/40 bg-[#0B0907] py-2.5 text-xs font-bold text-[#E5C158]"
+          >
+            <Landmark className="h-3.5 w-3.5" />
+            Bank A/C
+          </button>
         </div>
         <div className="flex items-start gap-2 text-[11px] text-zinc-500">
           <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#D4AF37]" />
@@ -220,7 +230,7 @@ export default function AccountTab({
       </div>
 
       {/* Appearance */}
-      <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-4 space-y-3 shadow-sm">
+      <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-4 space-y-3 shadow-sm">
         <h3 className="text-[11px] font-bold tracking-[0.16em] text-[#9A7422] dark:text-[#D4AF37] uppercase">
           Appearance
         </h3>
@@ -235,8 +245,8 @@ export default function AccountTab({
                 onClick={() => onUpdatePrefs({ theme: opt.id })}
                 className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-bold transition ${
                   active
-                    ? 'bg-gradient-to-r from-[#E6CB94] to-[#C9A452] text-[#07090F]'
-                    : 'border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#07090F] text-zinc-600 dark:text-zinc-400'
+                    ? 'bg-gradient-to-r from-[#E6CB94] to-[#C9A452] text-[#0B0907]'
+                    : 'border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#0B0907] text-zinc-600 dark:text-zinc-400'
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -248,7 +258,7 @@ export default function AccountTab({
       </div>
 
       {/* Custom Dropdown Terminal & Unit Preferences */}
-      <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] p-4 space-y-3.5 shadow-sm">
+      <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] p-4 space-y-3.5 shadow-sm">
         <h3 className="text-[11px] font-bold tracking-[0.16em] text-[#9A7422] dark:text-[#D4AF37] uppercase">
           Terminal Preferences
         </h3>
@@ -273,7 +283,7 @@ export default function AccountTab({
             }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-[#07090F] transition-transform ${
+              className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-[#0B0907] transition-transform ${
                 prefs.tickAudio ? 'translate-x-6' : 'translate-x-1'
               }`}
             />
@@ -306,7 +316,7 @@ export default function AccountTab({
       </div>
 
       {/* Security Center */}
-      <div className="rounded-2xl border border-zinc-200 dark:border-[#D4AF37]/25 bg-white dark:bg-[#10141F] p-4 space-y-3 shadow-sm">
+      <div className="rounded-2xl border border-zinc-200 dark:border-[#D4AF37]/25 bg-white dark:bg-[#15100B] p-4 space-y-3 shadow-sm">
         <div className="flex items-center justify-between">
           <h3 className="text-[11px] font-bold tracking-[0.16em] text-[#9A7422] dark:text-[#D4AF37] uppercase">
             Security Center (FLAG_SECURE + PostgreSQL)
@@ -327,7 +337,7 @@ export default function AccountTab({
         </button>
 
         {showChangePw && (
-          <form onSubmit={handleChangePassword} className="space-y-2.5 rounded-xl bg-zinc-50 dark:bg-[#07090F] p-3">
+          <form onSubmit={handleChangePassword} className="space-y-2.5 rounded-xl bg-zinc-50 dark:bg-[#0B0907] p-3">
             {pwErr && <p className="text-xs text-red-400">{pwErr}</p>}
             {pwMsg && <p className="text-xs text-emerald-400">{pwMsg}</p>}
             <input
@@ -335,18 +345,18 @@ export default function AccountTab({
               placeholder="Current password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full rounded-lg border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] px-3 py-2 text-xs"
+              className="w-full rounded-lg border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] px-3 py-2 text-xs"
             />
             <input
               type="password"
               placeholder="New strong password (8+ chars)"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full rounded-lg border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#10141F] px-3 py-2 text-xs"
+              className="w-full rounded-lg border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#15100B] px-3 py-2 text-xs"
             />
             <button
               type="submit"
-              className="w-full rounded-lg bg-[#D4AF37] py-2 text-xs font-bold text-[#07090F]"
+              className="w-full rounded-lg bg-[#D4AF37] py-2 text-xs font-bold text-[#0B0907]"
             >
               Update Password
             </button>
@@ -366,7 +376,7 @@ export default function AccountTab({
         </button>
 
         {showSessions && (
-          <div className="space-y-2 rounded-xl bg-zinc-50 dark:bg-[#07090F] p-3 text-[11px]">
+          <div className="space-y-2 rounded-xl bg-zinc-50 dark:bg-[#0B0907] p-3 text-[11px]">
             <div className="flex items-center justify-between">
               <span className="font-bold text-zinc-400 uppercase">Sessions ({sessions.length})</span>
               <button
@@ -436,7 +446,7 @@ export default function AccountTab({
                   href={updateInfo.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-lg bg-[#D4AF37] px-3 py-1 text-[11px] font-bold text-[#07090F]"
+                  className="rounded-lg bg-[#D4AF37] px-3 py-1 text-[11px] font-bold text-[#0B0907]"
                 >
                   Update Now
                 </a>

@@ -20,12 +20,12 @@ export function BottomSheetModal({ open, onClose, title, icon: Icon, children })
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 48, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 360, damping: 32 }}
-            className="relative z-10 w-full max-w-md rounded-t-3xl sm:rounded-3xl border border-zinc-200 dark:border-[#D4AF37]/30 bg-white dark:bg-[#10141F] p-5 shadow-2xl max-h-[88vh] flex flex-col safe-bottom"
+            className="relative z-10 w-full max-w-md rounded-t-3xl sm:rounded-3xl border border-zinc-200 dark:border-[#4A371E] bg-white dark:bg-[#15100B] p-5 shadow-2xl max-h-[88vh] flex flex-col safe-bottom"
           >
             <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-zinc-300 dark:bg-white/15 sm:hidden" />
 
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-white/10">
-              <div className="flex items-center gap-2.5 text-[#9A7422] dark:text-[#E8C97A]">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-[#3D2E1A]">
+              <div className="flex items-center gap-2.5 text-[#9A7422] dark:text-[#E5C158]">
                 {Icon && <Icon className="h-5 w-5" />}
                 <h3 className="font-serif-luxury text-lg font-bold tracking-wide">{title}</h3>
               </div>

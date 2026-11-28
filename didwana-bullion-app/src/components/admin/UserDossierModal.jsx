@@ -143,7 +143,7 @@ export function UserDossierModal({ userId, onClose, onUpdated }) {
             )}
 
             {/* Identity Snapshot */}
-            <div className="rounded-2xl border border-[#D4AF37]/25 bg-zinc-50 dark:bg-[#07090F] p-3.5 space-y-2 text-xs">
+            <div className="rounded-2xl border border-[#D4AF37]/25 bg-zinc-50 dark:bg-[#0B0907] p-3.5 space-y-2 text-xs">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="font-serif-luxury text-base font-bold text-zinc-900 dark:text-[#E6CB94]">
@@ -196,7 +196,7 @@ export function UserDossierModal({ userId, onClose, onUpdated }) {
             </div>
 
             {/* Precise GPS / Location Card */}
-            <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#07090F] p-3.5 space-y-2.5 text-xs">
+            <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#0B0907] p-3.5 space-y-2.5 text-xs">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-[#9A7422] dark:text-[#E6CB94]">
                   <MapPin className="h-4 w-4" />
@@ -238,7 +238,7 @@ export function UserDossierModal({ userId, onClose, onUpdated }) {
                         href={`https://www.google.com/maps?q=${lat},${lng}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E6CB94] to-[#C9A452] px-3 py-1.5 text-[11px] font-bold text-[#07090F]"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E6CB94] to-[#C9A452] px-3 py-1.5 text-[11px] font-bold text-[#0B0907]"
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
                         Open Google Maps
@@ -302,7 +302,7 @@ export function UserDossierModal({ userId, onClose, onUpdated }) {
             </div>
 
             {/* Hardware & Device Diagnostics */}
-            <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#07090F] p-3.5 space-y-2 text-[11px]">
+            <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#0B0907] p-3.5 space-y-2 text-[11px]">
               <div className="flex items-center gap-1.5 font-bold text-zinc-800 dark:text-zinc-200">
                 <Smartphone className="h-4 w-4 text-[#D4AF37]" />
                 Device &amp; Hardware Specs
@@ -336,7 +336,7 @@ export function UserDossierModal({ userId, onClose, onUpdated }) {
             </div>
 
             {/* Admin Moderation Controls */}
-            <div className="rounded-2xl border border-[#D4AF37]/25 bg-zinc-50 dark:bg-[#07090F] p-3.5 space-y-3 text-xs">
+            <div className="rounded-2xl border border-[#D4AF37]/25 bg-zinc-50 dark:bg-[#0B0907] p-3.5 space-y-3 text-xs">
               <div className="flex items-center gap-1.5 font-bold text-[#9A7422] dark:text-[#E6CB94]">
                 <ShieldCheck className="h-4 w-4" />
                 Account Control &amp; Notes
@@ -377,7 +377,7 @@ export function UserDossierModal({ userId, onClose, onUpdated }) {
                   value={blockedReason}
                   onChange={(e) => setBlockedReason(e.target.value)}
                   placeholder="Suspension reason shown to user"
-                  className="w-full rounded-xl border border-rose-500/30 bg-white dark:bg-[#10141F] px-3 py-2 text-xs text-zinc-100"
+                  className="w-full rounded-xl border border-rose-500/30 bg-white dark:bg-[#15100B] px-3 py-2 text-xs text-zinc-100"
                 />
               )}
 
@@ -386,13 +386,13 @@ export function UserDossierModal({ userId, onClose, onUpdated }) {
                 value={adminNotes}
                 onChange={(e) => setAdminNotes(e.target.value)}
                 placeholder="Private admin CRM notes (KYC / bullion desk notes)..."
-                className="w-full rounded-xl border border-white/10 bg-white dark:bg-[#10141F] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
+                className="w-full rounded-xl border border-white/10 bg-white dark:bg-[#15100B] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
               />
 
               <button
                 type="button"
                 onClick={handleSaveUser}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E6CB94] to-[#C9A452] py-2.5 text-xs font-bold text-[#07090F]"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E6CB94] to-[#C9A452] py-2.5 text-xs font-bold text-[#0B0907]"
               >
                 <Save className="h-3.5 w-3.5" />
                 Save Moderation &amp; Notes
@@ -402,7 +402,7 @@ export function UserDossierModal({ userId, onClose, onUpdated }) {
             {/* Send Direct Pop-up Notice */}
             <form
               onSubmit={handleSendNotice}
-              className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#07090F] p-3.5 space-y-2 text-xs"
+              className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#0B0907] p-3.5 space-y-2 text-xs"
             >
               <div className="flex items-center gap-1.5 font-bold text-zinc-800 dark:text-zinc-200">
                 <Bell className="h-4 w-4 text-[#D4AF37]" />
@@ -413,14 +413,14 @@ export function UserDossierModal({ userId, onClose, onUpdated }) {
                 value={noticeTitle}
                 onChange={(e) => setNoticeTitle(e.target.value)}
                 placeholder="Notice title (e.g., Booking Confirmation)"
-                className="w-full rounded-xl border border-white/10 bg-white dark:bg-[#10141F] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
+                className="w-full rounded-xl border border-white/10 bg-white dark:bg-[#15100B] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
               />
               <textarea
                 rows={2}
                 value={noticeMessage}
                 onChange={(e) => setNoticeMessage(e.target.value)}
                 placeholder="Direct message delivered inside user's app..."
-                className="w-full rounded-xl border border-white/10 bg-white dark:bg-[#10141F] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
+                className="w-full rounded-xl border border-white/10 bg-white dark:bg-[#15100B] px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
               />
               <button
                 type="submit"
@@ -433,7 +433,7 @@ export function UserDossierModal({ userId, onClose, onUpdated }) {
 
             {/* Recent Audit Logs */}
             {dossier?.auditLogs?.length > 0 && (
-              <div className="rounded-2xl border border-white/10 bg-[#07090F] p-3 space-y-1.5">
+              <div className="rounded-2xl border border-white/10 bg-[#0B0907] p-3 space-y-1.5">
                 <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                   <Clock className="h-3 w-3" />
                   User Activity Log ({dossier.auditLogs.length})

@@ -216,11 +216,11 @@ export default function App() {
 
     const fadeTimer = setTimeout(() => {
       if (mounted) setFadingSplash(true);
-    }, 1250);
+    }, 5200);
 
     const doneTimer = setTimeout(() => {
       if (mounted) setBooting(false);
-    }, 1600);
+    }, 5650);
 
     return () => {
       mounted = false;
@@ -476,7 +476,16 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#0B0907] text-zinc-900 dark:text-[#F5F2EB] transition-colors duration-200">
-      {booting && <SplashGate fadingOut={fadingSplash} rates={rates} />}
+      {booting && (
+        <SplashGate
+          fadingOut={fadingSplash}
+          rates={rates}
+          onFinish={() => {
+            setFadingSplash(true);
+            setBooting(false);
+          }}
+        />
+      )}
 
       {!isAuthenticated ? (
         <AuthScreens

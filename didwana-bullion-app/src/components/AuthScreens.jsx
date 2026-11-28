@@ -211,11 +211,11 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
         <div className="absolute inset-x-0 bottom-3 flex flex-col items-center px-4 text-center safe-top">
           <div className="flex flex-col items-center">
             <Crown className="h-4 w-4 text-[#E5C158]" />
-            <div className="mt-0.5 h-12 w-12 overflow-hidden rounded-full border-2 border-[#D4AF37] bg-[#15100B] p-0.5 shadow-xl">
+            <div className="mt-0.5 h-14 w-14 overflow-hidden rounded-xl border border-[#D4AF37]/45 bg-[#090909] p-0.5 shadow-xl">
               <img
                 src={dbLogoHdr}
                 alt="DB Logo"
-                className="h-full w-full rounded-full object-cover"
+                className="h-full w-full rounded-[10px] object-contain"
               />
             </div>
           </div>
@@ -557,7 +557,7 @@ export default function AuthScreens({ onAuthenticated, onOpenDoc }) {
             <img
               src={dbLogoHdr}
               alt="Booking Desk"
-              className="h-9 w-9 shrink-0 rounded-full border border-[#D4AF37]/50 object-cover"
+              className="h-10 w-10 shrink-0 rounded-xl border border-[#D4AF37]/40 bg-[#090909] object-contain"
             />
             <div className="min-w-0">
               <div className="text-[9px] font-bold tracking-widest text-[#D4AF37] uppercase">

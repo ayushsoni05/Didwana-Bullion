@@ -1,176 +1,218 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Crown, ShieldCheck } from 'lucide-react';
 import { APP_INFO } from '../config/constants';
 import dbLogoHdr from '../assets/db-logo-hdr.png';
-import bullionHero from '../assets/bullion-hero.jpg';
+import splashBullVideo from '../assets/splash-bull-intro.mp4';
+import splashBullPoster from '../assets/splash-bull-poster.jpg';
 
-const WEBFLOW_EASE = [0.16, 1, 0.3, 1];
+// Pure deterministic molten-gold ember coordinates for ambient bull breakout overlay
+const MOLTEN_SPARKS = [
+  { id: 1, left: '14%', bottom: '36%', size: 4, delay: 0.2, duration: 2.1, dx: 42, dy: -90 },
+  { id: 2, left: '22%', bottom: '42%', size: 3, delay: 0.45, duration: 1.9, dx: 64, dy: -115 },
+  { id: 3, left: '30%', bottom: '38%', size: 5, delay: 0.7, duration: 2.3, dx: 55, dy: -120 },
+  { id: 4, left: '41%', bottom: '45%', size: 3, delay: 1.0, duration: 2.0, dx: 70, dy: -135 },
+  { id: 5, left: '53%', bottom: '48%', size: 4, delay: 1.25, duration: 2.2, dx: 84, dy: -140 },
+  { id: 6, left: '64%', bottom: '52%', size: 5, delay: 1.5, duration: 1.85, dx: 75, dy: -125 },
+  { id: 7, left: '72%', bottom: '58%', size: 3, delay: 1.75, duration: 2.05, dx: 60, dy: -110 },
+  { id: 8, left: '80%', bottom: '63%', size: 4, delay: 2.0, duration: 2.25, dx: 48, dy: -95 },
+];
 
+/**
+ * Unified matte-obsidian DB monogram + rising trend arrow crest (matches launcher icon).
+ */
 export function GoldCrest({ size = 44, className = '' }) {
   return (
     <div
+      className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#090909] shadow-[0_2px_10px_rgba(212,175,55,0.18)] ${className}`}
       style={{ width: size, height: size }}
-      className={`relative shrink-0 rounded-full border-2 border-[#D4AF37]/80 bg-[#15100B] p-0.5 shadow-[0_8px_24px_-6px_rgba(212,175,55,0.45)] ${className}`}
     >
       <img
         src={dbLogoHdr}
-        alt="Didwana Bullion DB Crest"
-        className="h-full w-full rounded-full object-cover"
+        alt="Didwana Bullion DB Logo"
+        className="h-full w-full object-contain"
+        draggable={false}
       />
     </div>
   );
 }
 
-export default function SplashGate({ fadingOut, rates }) {
-  const goldAsk = rates?.HB?.items?.gold995?.ask || rates?.MOSUN?.items?.gold995?.ask || null;
-  const silverAsk =
-    rates?.HB?.items?.silverPeti?.ask || rates?.MOSUN?.items?.silverPeti?.ask || null;
+/**
+ * Full-screen ultra-luxury #090909 3D sculpted Golden Bull commercial animated splash screen.
+ * Plays bundled intro video with instant poster, specular light sweep fallback, and Skip control.
+ */
+export default function SplashGate({ fadingOut, rates, onFinish }) {
+  const [videoFailed, setVideoFailed] = useState(false);
+  const [localExit, setLocalExit] = useState(false);
+  const videoRef = useRef(null);
+  const exitTimerRef = useRef(null);
+
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (vid) {
+      vid.play().catch(() => {
+        // Fallback smoothly to animated poster/crest sequence if autoplay is blocked
+      });
+    }
+    return () => {
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+    };
+  }, []);
+
+  const triggerExit = () => {
+    if (localExit) return;
+    setLocalExit(true);
+    exitTimerRef.current = setTimeout(() => {
+      onFinish?.();
+    }, 280);
+  };
+
+  const goldBid = rates?.gold?.bid || rates?.goldCosting?.bid;
+  const isFading = fadingOut || localExit;
 
   return (
-    <motion.div
-      initial={{ opacity: 1 }}
-      animate={{ opacity: fadingOut ? 0 : 1 }}
-      transition={{ duration: 0.35, ease: WEBFLOW_EASE }}
-      style={{ willChange: 'opacity, transform' }}
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-between overflow-hidden bg-[#0B0907] px-6 py-8 safe-top safe-bottom ${
-        fadingOut ? 'pointer-events-none' : ''
+    <div
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-between overflow-hidden bg-[#090909] transition-opacity duration-500 ${
+        isFading ? 'pointer-events-none opacity-0' : 'opacity-100'
       }`}
     >
-      {/* Subtle Studio Gold Bar Backdrop Vignette */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <img
-          src={bullionHero}
-          alt=""
-          aria-hidden="true"
-          className="h-full w-full object-cover opacity-20 scale-105"
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(circle at 50% 42%, rgba(21,13,6,0.68) 0%, rgba(11,9,7,0.95) 68%, #070504 100%)',
-          }}
-        />
+      {/* Subtle dark radial studio backdrop */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(circle at 50% 46%, rgba(212,175,55,0.11) 0%, rgba(16,13,9,0.75) 45%, #090909 82%)',
+        }}
+      />
+
+      {/* Top Bar: Safe-Area Live Indicator & Skip Button */}
+      <div className="safe-top relative z-20 flex w-full items-center justify-between px-5 pt-4">
+        <div className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/25 bg-[#090909]/80 px-3 py-1 backdrop-blur-sm">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#D4AF37]" />
+          <span className="text-[10px] font-semibold tracking-[0.18em] text-[#E5C158] uppercase">
+            {goldBid ? `Spot Gold ₹${goldBid}` : 'Live Bullion Desk'}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={triggerExit}
+          className="rounded-full border border-[#D4AF37]/30 bg-[#14110C]/85 px-3.5 py-1 text-[11px] font-semibold tracking-wider text-[#E5C158] uppercase backdrop-blur-sm transition hover:border-[#D4AF37]/70 hover:bg-[#1E1911] active:scale-95"
+        >
+          Skip &rarr;
+        </button>
       </div>
 
-      {/* Top Heritage Tag matching HB Jodhpur */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, delay: 0.1, ease: WEBFLOW_EASE }}
-        className="relative z-10 flex flex-col items-center gap-2 text-center"
-      >
-        <div className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-[#15100B]/85 px-4 py-1 text-[10px] font-bold tracking-[0.22em] text-[#D4AF37] uppercase">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
-          ESTD. 1994 • RAJASTHAN
-          <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
-        </div>
-        <div className="font-serif-luxury text-xs tracking-[0.28em] text-[#E6DFD5]/80 uppercase">
-          ( NEW MONIKA JEWELLERS )
-        </div>
-      </motion.div>
-
-      {/* Center Crowned Coin Medallion & Typography */}
-      <div className="relative z-10 flex flex-col items-center text-center">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0, y: 12 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 310, damping: 24 }}
-          className="relative mb-5 flex flex-col items-center"
-        >
-          <Crown className="mb-1 h-7 w-7 text-[#E5C158] drop-shadow-[0_2px_10px_rgba(212,175,55,0.55)]" />
-          <div className="relative rounded-full border-2 border-[#D4AF37]/80 bg-gradient-to-b from-[#2A1D0F] to-[#0B0907] p-2 shadow-[0_18px_55px_-10px_rgba(212,175,55,0.45)]">
-            <div className="rounded-full border border-dashed border-[#D4AF37]/50 p-2">
-              <img
+      {/* Center Commercial 3D Charging Bull Stage */}
+      <div className="relative z-10 flex w-full max-w-md flex-1 flex-col items-center justify-center px-3">
+        <div className="relative flex w-full items-center justify-center overflow-hidden rounded-2xl bg-[#090909]">
+          {!videoFailed ? (
+            <video
+              ref={videoRef}
+              src={splashBullVideo}
+              poster={splashBullPoster}
+              muted
+              autoPlay
+              playsInline
+              preload="auto"
+              onEnded={triggerExit}
+              onError={() => setVideoFailed(true)}
+              className="aspect-[9/16] max-h-[70vh] w-full rounded-2xl bg-[#090909] object-contain"
+            />
+          ) : (
+            <div className="relative flex flex-col items-center justify-center py-6">
+              <motion.img
+                src={splashBullPoster}
+                alt="3D Charging Golden Bull"
+                initial={{ opacity: 0, scale: 0.92, x: -24 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                className="max-h-[42vh] w-full rounded-2xl object-contain"
+              />
+              <motion.img
                 src={dbLogoHdr}
-                alt="Didwana Bullion Monogram"
-                className="h-24 w-24 rounded-full object-cover"
+                alt="DB Didwana Bullion"
+                initial={{ opacity: 0, y: 18, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: 0.6, duration: 0.7 }}
+                className="mt-4 h-36 w-36 object-contain"
               />
             </div>
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full animate-[shimmerSweep_2.2s_infinite]"
-            />
-          </div>
-        </motion.div>
+          )}
 
-        <motion.h1
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.18, ease: WEBFLOW_EASE }}
-          className="font-serif-luxury bg-gradient-to-r from-[#F5E6A3] via-[#D4AF37] to-[#C69749] bg-clip-text text-3xl font-bold tracking-[0.06em] text-transparent uppercase"
-        >
-          {APP_INFO.name}
-        </motion.h1>
+          {/* Edge vignette to seamlessly melt video edges into #090909 obsidian */}
+          <div
+            className="pointer-events-none absolute inset-0 rounded-2xl"
+            style={{
+              boxShadow: 'inset 0 0 38px 18px #090909',
+            }}
+          />
 
-        <motion.p
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.25, ease: WEBFLOW_EASE }}
-          className="mt-1.5 text-sm font-medium text-[#E6DFD5]"
-        >
-          न्यू मोनिका ज्वैलर्स • डीडवाना (राज.)
-        </motion.p>
-        <p className="mt-1 text-[10px] font-bold tracking-[0.22em] text-[#D4AF37]/85 uppercase">
-          WHOLESALE GOLD &amp; SILVER SPOT DESK
-        </p>
-
-        {(goldAsk || silverAsk) && (
+          {/* Diagonal Specular Light Sweep Overlay */}
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.32, ease: WEBFLOW_EASE }}
-            className="mt-5 grid w-full max-w-xs grid-cols-2 gap-2.5"
-          >
-            <div className="rounded-xl border border-[#D4AF37]/25 bg-[#15100B]/85 px-3 py-2 text-left backdrop-blur-sm">
-              <div className="flex items-center gap-1.5 text-[9px] font-bold text-zinc-400 uppercase">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#148A14]" />
-                GOLD 995
-              </div>
-              <div className="font-mono-price mt-0.5 text-base font-bold text-white">
-                {goldAsk ? `₹${Math.round(goldAsk).toLocaleString('en-IN')}` : 'SYNCING'}
-              </div>
-            </div>
-            <div className="rounded-xl border border-[#D4AF37]/25 bg-[#15100B]/85 px-3 py-2 text-left backdrop-blur-sm">
-              <div className="flex items-center gap-1.5 text-[9px] font-bold text-zinc-400 uppercase">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#148A14]" />
-                SILVER PETI
-              </div>
-              <div className="font-mono-price mt-0.5 text-base font-bold text-white">
-                {silverAsk ? `₹${Math.round(silverAsk).toLocaleString('en-IN')}` : 'SYNCING'}
-              </div>
-            </div>
-          </motion.div>
-        )}
+            aria-hidden="true"
+            initial={{ x: '-140%', opacity: 0 }}
+            animate={{ x: '180%', opacity: [0, 0.35, 0] }}
+            transition={{ delay: 2.6, duration: 1.5, ease: 'easeInOut' }}
+            className="pointer-events-none absolute inset-y-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-[#F6E299]/25 to-transparent"
+          />
+
+          {/* Molten Gold Spark Embers */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            {MOLTEN_SPARKS.map((spark) => (
+              <motion.span
+                key={spark.id}
+                initial={{ opacity: 0, x: 0, y: 0, scale: 0.6 }}
+                animate={{
+                  opacity: [0, 0.9, 0],
+                  x: spark.dx,
+                  y: spark.dy,
+                  scale: [0.6, 1.15, 0.3],
+                }}
+                transition={{
+                  delay: spark.delay,
+                  duration: spark.duration,
+                  repeat: Infinity,
+                  repeatDelay: 1.2,
+                  ease: 'easeOut',
+                }}
+                className="absolute rounded-full bg-[#F5D36A] shadow-[0_0_8px_#D4AF37]"
+                style={{
+                  left: spark.left,
+                  bottom: spark.bottom,
+                  width: spark.size,
+                  height: spark.size,
+                }}
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Bottom Terminal Sync Strip */}
+      {/* Bottom Luxury Brand Lockup Footer */}
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, delay: 0.36, ease: WEBFLOW_EASE }}
-        className="relative z-10 w-full max-w-xs space-y-2.5 text-center"
+        transition={{ delay: 0.4, duration: 0.7 }}
+        className="safe-bottom relative z-20 flex w-full flex-col items-center gap-1.5 px-6 pb-6 text-center"
       >
-        <div className="flex items-center justify-between rounded-full border border-[#3D2E1A] bg-[#15100B]/90 px-3.5 py-2 shadow-lg">
-          <span className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-[#F5F2EB] uppercase">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-[#148A14]" />
-            JODHPUR • SUJANGARH • IBJA
-          </span>
-          <span className="rounded-full bg-[#148A14]/25 px-2 py-0.5 text-[9px] font-bold text-emerald-400">
-            LIVE FEED
+        <div className="flex items-center gap-2.5">
+          <GoldCrest size={28} />
+          <span className="font-serif-luxury text-xs font-bold tracking-[0.22em] text-[#E5C158] uppercase">
+            {APP_INFO.name}
           </span>
         </div>
-
-        <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
-          <div className="h-full w-1/2 rounded-full bg-gradient-to-r from-[#997B28] via-[#E5C158] to-[#997B28] animate-splash-bar" />
-        </div>
-
-        <div className="flex items-center justify-center gap-1.5 text-[9px] tracking-[0.14em] text-zinc-500 uppercase">
-          <ShieldCheck className="h-3 w-3 text-[#D4AF37]" />
-          ONLINE TRADING: 09:10 AM TO 11:50 PM • SECURE DESK
+        <p className="text-[10px] font-medium tracking-[0.2em] text-[#9A8C72] uppercase">
+          New Monika Jewellers &bull; Jodhpur &bull; Sujangarh &bull; IBJA
+        </p>
+        <div className="mt-1 h-[2px] w-28 overflow-hidden rounded-full bg-[#241E15]">
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: '0%' }}
+            transition={{ duration: 4.8, ease: 'linear' }}
+            className="h-full w-full rounded-full bg-gradient-to-r from-[#9C7A2C] via-[#F3D27A] to-[#D4AF37]"
+          />
         </div>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }

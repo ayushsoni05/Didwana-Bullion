@@ -14,7 +14,7 @@ export const APP_INFO = {
   whatsappPhone: '919351214851',
   packageId: 'com.didwanabullion.app',
   legalVersion: '1.1.0',
-  appVersion: '10.0.0',
+  appVersion: '11.0.0',
   githubRepo: 'ayushsoni05/Didwana-Bullion',
   ownerAdminEmail: 'newmonikajewellers1999@gmail.com',
 };

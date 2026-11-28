@@ -31,8 +31,8 @@ function formatNum(num) {
 }
 
 const TERMINAL_TABS = [
-  { id: 'HB', label: 'HB JODHPUR', full: 'HB Jodhpur Rates' },
-  { id: 'MOSUN', label: 'MOSUN SUJANGARH', full: 'Mosun & Sons Sujangarh' },
+  { id: 'HB', label: 'JODHPUR', full: 'Jodhpur Bullion Rates' },
+  { id: 'MOSUN', label: 'SUJANGARH', full: 'Sujangarh Bullion Rates' },
   { id: 'IBJA', label: 'IBJA', full: 'IBJA Official' },
   { id: 'COMPARE', label: 'COMPARE', full: '3-Mandi Compare' },
 ];
@@ -71,13 +71,25 @@ export default function LiveRatesTab({
 
   const spot = rates?.spot || {};
   const gold995Ask =
-    rates?.[currentTerm]?.items?.gold995?.ask || rates?.HB?.items?.gold995?.ask || 0;
+    rates?.[currentTerm]?.items?.gold995_rtgs?.ask ||
+    rates?.[currentTerm]?.items?.gold995?.ask ||
+    rates?.HB?.items?.gold995?.ask ||
+    0;
   const gold995Bid =
-    rates?.[currentTerm]?.items?.gold995?.bid || rates?.HB?.items?.gold995?.bid || 0;
+    rates?.[currentTerm]?.items?.gold995_rtgs?.bid ||
+    rates?.[currentTerm]?.items?.gold995?.bid ||
+    rates?.HB?.items?.gold995?.bid ||
+    0;
   const silverPetiAsk =
-    rates?.[currentTerm]?.items?.silverPeti?.ask || rates?.HB?.items?.silverPeti?.ask || 0;
+    rates?.[currentTerm]?.items?.silverPeti_rtgs?.ask ||
+    rates?.[currentTerm]?.items?.silverPeti?.ask ||
+    rates?.HB?.items?.silverPeti?.ask ||
+    0;
   const silverPetiBid =
-    rates?.[currentTerm]?.items?.silverPeti?.bid || rates?.HB?.items?.silverPeti?.bid || 0;
+    rates?.[currentTerm]?.items?.silverPeti_rtgs?.bid ||
+    rates?.[currentTerm]?.items?.silverPeti?.bid ||
+    rates?.HB?.items?.silverPeti?.bid ||
+    0;
 
   const coinsCatalog = useMemo(() => {
     const g24 = rates?.HB?.items?.gold24k?.ask || gold995Ask || 0;
@@ -118,7 +130,8 @@ export default function LiveRatesTab({
   }, [rates, gold995Ask, silverPetiAsk]);
 
   const compareRows = [
-    { key: 'gold995', label: 'GOLD 995 (10g)' },
+    { key: 'gold995_rtgs', fallbackKey: 'gold995', label: 'GOLD 995 RTGS' },
+    { key: 'gold995', label: 'GOLD 995 CASH/READY' },
     { key: 'gold916', label: '22K 916 HUID' },
     { key: 'gold18k', label: '18K 750 HUID' },
     { key: 'silverPeti', label: 'SILVER PETI 1KG' },
@@ -137,7 +150,7 @@ export default function LiveRatesTab({
 
   return (
     <div className="space-y-3 pb-28">
-      {/* 1. HB & Mosun Exact Scrolling Marquee */}
+      {/* 1. Live Trading Marquee */}
       <div className="overflow-hidden rounded-xl border border-[#3D2E1A] bg-[#15100B] py-1.5 px-2 text-[11px] font-medium text-[#E5C158]">
         <div className="animate-marquee gap-10">
           <span>● {marqueeText}</span>
@@ -145,7 +158,7 @@ export default function LiveRatesTab({
         </div>
       </div>
 
-      {/* 2. Top 3-Column Comex & Spot Ticker Strip (Exact Mosun Style) */}
+      {/* 2. Top 3-Column Comex & Spot Ticker Strip */}
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-xl border border-[#3D2E1A] bg-[#15100B] p-2.5">
           <div className="flex items-center justify-between text-[9px] font-bold tracking-wider text-[#E5C158] uppercase">
@@ -194,7 +207,7 @@ export default function LiveRatesTab({
         </div>
       </div>
 
-      {/* 3. Terminal Switcher (HB Jodhpur / Mosun Sujangarh / IBJA / Compare) */}
+      {/* 3. Terminal Switcher (Jodhpur / Sujangarh / IBJA / Compare) */}
       <div className="grid grid-cols-4 gap-1 rounded-xl border border-[#3D2E1A] bg-[#15100B] p-1">
         {TERMINAL_TABS.map((tab) => {
           const active = currentTerm === tab.id;
@@ -293,7 +306,7 @@ export default function LiveRatesTab({
         </div>
       </div>
 
-      {/* 5. Main Board: Compare Matrix OR Coins Catalog OR Exact HB/Mosun PRODUCTS | BUY | SELL Table */}
+      {/* 5. Main Board: Compare Matrix OR Coins Catalog OR PRODUCTS | BUY | SELL Table */}
       <AnimatePresence mode="wait">
         {currentTerm === 'COMPARE' ? (
           <motion.div
@@ -305,27 +318,18 @@ export default function LiveRatesTab({
           >
             <div className="grid grid-cols-4 bg-[#F5F0E6] px-3 py-2 text-[10px] font-extrabold tracking-wider text-[#0B0907] uppercase">
               <span>PRODUCT</span>
-              <span className="text-right">HB JDR</span>
-              <span className="text-right">MOSUN SJG</span>
+              <span className="text-right">JODHPUR</span>
+              <span className="text-right">SUJANGARH</span>
               <span className="text-right">IBJA</span>
             </div>
             <div className="divide-y divide-[#2B2012]">
               {compareRows.map((row) => {
-                const jdr = scalePrice(
-                  rates?.HB?.items?.[row.key]?.ask || rates?.HB?.items?.[row.key]?.bid,
-                  rates?.HB?.items?.[row.key]?.unit,
-                  unit
-                );
-                const sjg = scalePrice(
-                  rates?.MOSUN?.items?.[row.key]?.ask || rates?.MOSUN?.items?.[row.key]?.bid,
-                  rates?.MOSUN?.items?.[row.key]?.unit,
-                  unit
-                );
-                const ibja = scalePrice(
-                  rates?.IBJA?.items?.[row.key]?.ask || rates?.IBJA?.items?.[row.key]?.bid,
-                  rates?.IBJA?.items?.[row.key]?.unit,
-                  unit
-                );
+                const jdrItem = rates?.HB?.items?.[row.key] || (row.fallbackKey ? rates?.HB?.items?.[row.fallbackKey] : null);
+                const sjgItem = rates?.MOSUN?.items?.[row.key] || (row.fallbackKey ? rates?.MOSUN?.items?.[row.fallbackKey] : null);
+                const ibjaItem = rates?.IBJA?.items?.[row.key] || (row.fallbackKey ? rates?.IBJA?.items?.[row.fallbackKey] : null);
+                const jdr = scalePrice(jdrItem?.ask || jdrItem?.bid, jdrItem?.unit, unit);
+                const sjg = scalePrice(sjgItem?.ask || sjgItem?.bid, sjgItem?.unit, unit);
+                const ibja = scalePrice(ibjaItem?.ask || ibjaItem?.bid, ibjaItem?.unit, unit);
                 return (
                   <div key={row.key} className="grid grid-cols-4 items-center px-3 py-3 text-xs">
                     <span className="font-bold text-[#E5C158]">{row.label}</span>
@@ -384,7 +388,7 @@ export default function LiveRatesTab({
             transition={{ duration: 0.16 }}
             className="overflow-hidden rounded-2xl border border-[#3D2E1A] bg-[#15100B] shadow-xl"
           >
-            {/* Exact HB & Mosun Pale Cream Column Bar */}
+            {/* Pale Cream Column Bar */}
             <div className="grid grid-cols-12 items-center bg-[#F5F0E6] px-3 py-2 text-[10px] font-extrabold tracking-wider text-[#0B0907] uppercase">
               <span className="col-span-6">
                 PRODUCTS <span className="font-semibold lowercase opacity-70">({unit})</span>
@@ -417,7 +421,7 @@ export default function LiveRatesTab({
                     tickDir === 'down'
                       ? 'bg-[#DC2626] text-white'
                       : tickDir === 'up' ||
-                        /gold995|gold995_rtgs|silverPeti/.test(item.key)
+                        /gold995|gold995_rtgs|silverPeti|silverPeti_rtgs/.test(item.key)
                       ? 'bg-[#148A14] text-white'
                       : 'border border-[#4A371E] bg-[#1F170E] text-white';
 
@@ -503,7 +507,7 @@ export default function LiveRatesTab({
         )}
       </AnimatePresence>
 
-      {/* 6. Bottom 2-Column GOLD CURRENT & SILVER CURRENT Spot Cards (Exact Mosun Style) */}
+      {/* 6. Bottom 2-Column GOLD CURRENT & SILVER CURRENT Spot Cards */}
       <div className="grid grid-cols-2 gap-2.5">
         <div className="rounded-xl border border-[#3D2E1A] bg-[#15100B] p-3">
           <div className="flex items-center justify-between text-[10px] font-bold text-[#E5C158]">
@@ -548,7 +552,7 @@ export default function LiveRatesTab({
         </div>
       </div>
 
-      {/* 7. HB & Mosun Booking Number Strip + Bank Details */}
+      {/* 7. Direct Booking Number Strip + Bank Details */}
       <div className="flex items-center justify-between gap-2 rounded-xl border border-[#3D2E1A] bg-[#15100B] px-3.5 py-2.5">
         <div className="min-w-0">
           <div className="text-[9px] font-bold tracking-widest text-[#E5C158] uppercase">

@@ -58,8 +58,7 @@ export function LegalDocumentModal({ docType, onClose }) {
               <h3 className="text-base font-semibold text-[#E5C99B]">1. Indicative Live Rates Only</h3>
               <p>
                 <strong>Didwana Bullion</strong> provides real-time indicative bullion market rates
-                sourced from <strong>Himanshu Bullion (HB Jodhpur)</strong>,{' '}
-                <strong>Mosun &amp; Sons (Sujangarh)</strong>, and{' '}
+                aggregated from <strong>Jodhpur &amp; Sujangarh regional bullion desks</strong> and{' '}
                 <strong>Official IBJA Benchmarks</strong> for informational and showroom reference
                 only.
               </p>
@@ -146,7 +145,7 @@ export function LegalDocumentModal({ docType, onClose }) {
               </h3>
               <p>
                 Stores your optional app preferences locally on your device: live tick audio
-                mute/unmute state, default terminal tab (HB / Mosun / IBJA / All), and last
+                mute/unmute state, default terminal tab (Jodhpur / Sujangarh / IBJA / Compare), and last
                 selected chart timeframe (1D / 1W / 1M / 1Y).
               </p>
             </section>

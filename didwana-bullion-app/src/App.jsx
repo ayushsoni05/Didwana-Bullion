@@ -464,9 +464,11 @@ export default function App() {
   const handleShareRates = async () => {
     const jdrGold = Math.round(rates?.HB?.items?.gold995?.ask || 0).toLocaleString('en-IN');
     const jdrSilver = Math.round(rates?.HB?.items?.silverPeti?.ask || 0).toLocaleString('en-IN');
-    const sjgGold = Math.round(rates?.MOSUN?.items?.gold995?.ask || 0).toLocaleString('en-IN');
+    const sjgGold = Math.round(
+      rates?.MOSUN?.items?.gold995_rtgs?.ask || rates?.MOSUN?.items?.gold995?.ask || 0
+    ).toLocaleString('en-IN');
     const ibjaGold = Math.round(rates?.IBJA?.items?.gold995?.ask || 0).toLocaleString('en-IN');
-    const text = `*Didwana Bullion (New Monika Jewellers)*\nJodhpur Gold 995: ₹${jdrGold}/10g\nJodhpur Silver 1KG: ₹${jdrSilver}\nSujangarh Gold 995: ₹${sjgGold}/10g\nIBJA Gold 995: ₹${ibjaGold}/10g`;
+    const text = `*Didwana Bullion (New Monika Jewellers)*\nJodhpur Gold 995: ₹${jdrGold}/10g\nJodhpur Silver 1KG: ₹${jdrSilver}\nSujangarh Gold 995 RTGS: ₹${sjgGold}/10g\nIBJA Gold 995: ₹${ibjaGold}/10g`;
     try {
       await Share.share({ title: 'Didwana Bullion Live Rates', text });
     } catch {
@@ -497,7 +499,7 @@ export default function App() {
         />
       ) : (
         <div className={`mx-auto px-3.5 pt-2.5 safe-top ${activeTab === 'admin' ? 'max-w-5xl' : 'max-w-lg'}`}>
-          {/* Authentic HB & Mosun Smoked Bronze Top Bar */}
+          {/* Smoked Bronze Luxury Top Bar */}
           <header className="mb-3 flex items-center justify-between rounded-2xl border border-[#3D2E1A] bg-[#15100B] px-3 py-2 shadow-md">
             <div className="flex items-center gap-2.5 min-w-0">
               <GoldCrest size={34} />

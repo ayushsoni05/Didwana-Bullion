@@ -192,7 +192,7 @@ export default function AccountTab({
         </button>
       )}
 
-      {/* Showroom Desk (Call & WhatsApp like HB Jodhpur) */}
+      {/* Showroom Desk (Call & WhatsApp) */}
       <div className="rounded-2xl border border-zinc-200 dark:border-[#D4AF37]/20 bg-white dark:bg-[#15100B] p-4 space-y-3 shadow-sm">
         <h3 className="font-serif-luxury text-sm font-bold text-[#9A7422] dark:text-[#E6CB94]">
           New Monika Jewellers — Trade Desk

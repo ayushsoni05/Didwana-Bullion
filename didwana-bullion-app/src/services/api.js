@@ -437,18 +437,62 @@ function findProduct(products, matcher) {
   return products.find((p) => matcher((p.name || p.displayName || '').toLowerCase())) || null;
 }
 
+function findRegionalProduct(products, matcher) {
+  if (!Array.isArray(products)) return null;
+  return (
+    products.find((p) => matcher(`${p.name || ''} ${p.displayName || ''}`.toLowerCase())) || null
+  );
+}
+
 /**
- * Normalizes live payloads from:
- * - himanshuBullion (HB Jodhpur)
- * - mosunBullion (Mosun & Sons Sujangarh)
- * - ibja / /api/prices/ibja-live (IBJA Official)
+ * Fixes upstream feed double-addition where flat-quoted rates (e.g. RTGS / Cash / Auction)
+ * carry the full quote in `diff` while upstream mistakenly adds MCX spot on top of it.
+ */
+function sanitizeUpstreamRate({ bid, ask, high, low, product, refBase }) {
+  let cleanAsk = ask;
+  let cleanBid = bid;
+  const prodDiff = pickNum(product?.diff);
+  const spread = cleanAsk && cleanBid && cleanAsk > cleanBid ? cleanAsk - cleanBid : 0;
+
+  if (cleanAsk && refBase) {
+    if (
+      prodDiff &&
+      prodDiff > refBase * 0.55 &&
+      cleanAsk > refBase * 1.55 &&
+      Math.abs(cleanAsk - prodDiff - refBase) < refBase * 0.05
+    ) {
+      cleanAsk = prodDiff;
+      cleanBid = spread && spread < cleanAsk ? cleanAsk - spread : cleanBid;
+    } else if (cleanAsk > refBase * 1.55) {
+      cleanAsk = cleanAsk - refBase;
+      if (cleanBid && cleanBid > refBase * 1.55) {
+        cleanBid = cleanBid - refBase;
+      } else if (spread && spread < cleanAsk) {
+        cleanBid = cleanAsk - spread;
+      }
+    }
+  }
+
+  const rawHigh = pickNum(high, product?.high);
+  const rawLow = pickNum(low, product?.low);
+  const cleanHigh = rawHigh && (!refBase || rawHigh <= refBase * 1.55) ? rawHigh : null;
+  const cleanLow = rawLow && (!refBase || rawLow <= refBase * 1.55) ? rawLow : null;
+
+  return { bid: cleanBid, ask: cleanAsk, high: cleanHigh, low: cleanLow };
+}
+
+/**
+ * Normalizes live payloads across all three bullion desks:
+ * - Jodhpur Bullion Desk
+ * - Sujangarh Bullion Desk
+ * - Official IBJA Benchmark
  */
 export function normalizeBullionPayload(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const data = raw.payload || raw.data || raw.rates || raw;
   const now = data.updatedAt || data.lastUpdated || data.timestamp || raw.timestamp || new Date().toISOString();
 
-  // 1. HB Jodhpur (himanshuBullion) — ALL Gold & Silver rates
+  // 1. Jodhpur Desk — Gold & Silver Ready/TDS rates
   const hb = data.himanshuBullion || data.hb || data.HB || {};
   const hbProds = hb.products || [];
   const hbGold995 = findProduct(hbProds, (n) => n.includes('995') && !n.includes('tds'));
@@ -576,42 +620,103 @@ export function normalizeBullionPayload(raw) {
     items: Object.fromEntries(hbList.map((i) => [i.key, i])),
   };
 
-  // 2. Mosun & Sons Sujangarh (mosunBullion) — ALL Cash, RTGS, HUID & Silver rates
+  // 2. Sujangarh Desk — ALL Cash, RTGS, HUID & Silver rates (with double-add guard)
   const mosun = data.mosunBullion || data.mosun || data.MOSUN || {};
+  const mosunProds = mosun.products || [];
   const mr = mosun.rates || {};
+  const mcxGoldRef = pickNum(mr.mcx_gold, data.mcx_gold);
+  const mcxSilverRef = pickNum(mr.mcx_silver, data.mcx_silver);
+
+  const pGold995Cash = findRegionalProduct(mosunProds, (n) => n.includes('99.50') && !n.includes('rtgs'));
+  const pGold995Rtgs = findRegionalProduct(mosunProds, (n) => (n.includes('99.50') || n.includes('रेडी स्टॉक')) && n.includes('rtgs'));
+  const pGold993Cash = findRegionalProduct(mosunProds, (n) => n.includes('99.30') && !n.includes('rtgs'));
+  const pGold993Rtgs = findRegionalProduct(mosunProds, (n) => n.includes('99.30') && n.includes('rtgs'));
+  const pGold22 = findRegionalProduct(mosunProds, (n) => n.includes('916') || n.includes('22'));
+  const pGold20 = findRegionalProduct(mosunProds, (n) => n.includes('833') || n.includes('20'));
+  const pGold18 = findRegionalProduct(mosunProds, (n) => n.includes('750') || n.includes('18'));
+  const pSilverBankCash = findRegionalProduct(mosunProds, (n) => n.includes('silver bank') && !n.includes('rtgs'));
+  const pSilverBankRtgs = findRegionalProduct(mosunProds, (n) => n.includes('silver bank') && n.includes('rtgs'));
+  const pSilverChorsaCash = findRegionalProduct(mosunProds, (n) => n.includes('chorsa') && !n.includes('rtgs'));
+  const pSilverChorsaRtgs = findRegionalProduct(mosunProds, (n) => n.includes('chorsa') && n.includes('rtgs'));
+  const pSilverAuction = findRegionalProduct(mosunProds, (n) => n.includes('auction'));
+  const pSilverJewel = findRegionalProduct(
+    mosunProds,
+    (n) => (n.includes('silver') || n.includes('चांदी')) && (n.includes('बर्तन') || n.includes('utensils') || n.includes('jewellery'))
+  );
+
+  const sjGold995Cash = sanitizeUpstreamRate({
+    bid: pickNum(mr.gold_995_cash_bid, mr.gold_995_bid, pGold995Cash?.bid),
+    ask: pickNum(mr.gold_995_cash_ask, mr.gold_995_ask, mr.gold_995, pGold995Cash?.ask),
+    high: mr.gold_995_high,
+    low: mr.gold_995_low,
+    product: pGold995Cash,
+    refBase: mcxGoldRef,
+  });
+  const sjGold995Rtgs = sanitizeUpstreamRate({
+    bid: pickNum(mr.gold_995_rtgs_bid, pGold995Rtgs?.bid),
+    ask: pickNum(mr.gold_995_rtgs_ask, mr.gold_995_rtgs, pGold995Rtgs?.ask),
+    product: pGold995Rtgs,
+    refBase: mcxGoldRef,
+  });
+  const sjGold993Cash = sanitizeUpstreamRate({
+    bid: pickNum(mr.gold_993_cash_bid, pGold993Cash?.bid),
+    ask: pickNum(mr.gold_993_cash_ask, mr.gold_993_cash, pGold993Cash?.ask),
+    product: pGold993Cash,
+    refBase: mcxGoldRef,
+  });
+  const sjGold993Rtgs = sanitizeUpstreamRate({
+    bid: pickNum(mr.gold_993_rtgs_bid, pGold993Rtgs?.bid),
+    ask: pickNum(mr.gold_993_rtgs_ask, mr.gold_993_rtgs, pGold993Rtgs?.ask),
+    product: pGold993Rtgs,
+    refBase: mcxGoldRef,
+  });
+  const sjSilverBankCash = sanitizeUpstreamRate({
+    bid: pickNum(mr.silver_bank_cash_bid, pSilverBankCash?.bid),
+    ask: pickNum(mr.silver_bank_cash_ask, mr.silver_bank_cash, pSilverBankCash?.ask),
+    product: pSilverBankCash,
+    refBase: mcxSilverRef,
+  });
+  const sjSilverBankRtgs = sanitizeUpstreamRate({
+    bid: pickNum(mr.silver_bank_rtgs_bid, mr.silver_999_1kg_bid, pSilverBankRtgs?.bid),
+    ask: pickNum(mr.silver_bank_rtgs_ask, mr.silver_bank_rtgs, mr.silver_999_1kg_ask, pSilverBankRtgs?.ask),
+    product: pSilverBankRtgs,
+    refBase: mcxSilverRef,
+  });
+  const sjSilverChorsaCash = sanitizeUpstreamRate({
+    bid: pickNum(mr.silver_chorsa_bid, pSilverChorsaCash?.bid),
+    ask: pickNum(mr.silver_chorsa_ask, mr.silver_chorsa, pSilverChorsaCash?.ask),
+    product: pSilverChorsaCash,
+    refBase: mcxSilverRef,
+  });
+  const sjSilverChorsaRtgs = sanitizeUpstreamRate({
+    bid: pickNum(mr.silver_chorsa_rtgs_bid, pSilverChorsaRtgs?.bid),
+    ask: pickNum(mr.silver_chorsa_rtgs_ask, mr.silver_chorsa_rtgs, pSilverChorsaRtgs?.ask),
+    product: pSilverChorsaRtgs,
+    refBase: mcxSilverRef,
+  });
+  const sjSilverAuction = sanitizeUpstreamRate({
+    bid: pickNum(mr.silver_auction_bank_bid, pSilverAuction?.bid),
+    ask: pickNum(mr.silver_auction_bank_ask, mr.silver_auction_bank, pSilverAuction?.ask),
+    product: pSilverAuction,
+    refBase: mcxSilverRef,
+  });
+
   const mosunList = [
-    {
-      key: 'gold995',
-      name: 'Gold 24K (99.50) Cash',
-      tag: 'LOCAL CASH',
-      metal: 'gold',
-      unit: '10g',
-      bid: pickNum(mr.gold_995_cash_bid, mr.gold_995_bid),
-      ask: pickNum(mr.gold_995_cash_ask, mr.gold_995_ask, mr.gold_995),
-      high: pickNum(mr.gold_995_high),
-      low: pickNum(mr.gold_995_low),
-    },
     {
       key: 'gold995_rtgs',
       name: 'Gold 99.50 RTGS',
       tag: 'RTGS • 3% GST',
       metal: 'gold',
       unit: '10g',
-      bid: pickNum(mr.gold_995_rtgs_bid),
-      ask: pickNum(mr.gold_995_rtgs_ask, mr.gold_995_rtgs),
-      high: null,
-      low: null,
+      ...sjGold995Rtgs,
     },
     {
-      key: 'gold993_cash',
-      name: 'Gold 99.30 Cash',
+      key: 'gold995',
+      name: 'Gold 24K (99.50) Cash',
       tag: 'LOCAL CASH',
       metal: 'gold',
       unit: '10g',
-      bid: pickNum(mr.gold_993_cash_bid),
-      ask: pickNum(mr.gold_993_cash_ask, mr.gold_993_cash),
-      high: null,
-      low: null,
+      ...sjGold995Cash,
     },
     {
       key: 'gold993_rtgs',
@@ -619,10 +724,15 @@ export function normalizeBullionPayload(raw) {
       tag: 'RTGS • 3% GST',
       metal: 'gold',
       unit: '10g',
-      bid: pickNum(mr.gold_993_rtgs_bid),
-      ask: pickNum(mr.gold_993_rtgs_ask, mr.gold_993_rtgs),
-      high: null,
-      low: null,
+      ...sjGold993Rtgs,
+    },
+    {
+      key: 'gold993_cash',
+      name: 'Gold 99.30 Cash',
+      tag: 'LOCAL CASH',
+      metal: 'gold',
+      unit: '10g',
+      ...sjGold993Cash,
     },
     {
       key: 'gold916',
@@ -630,10 +740,10 @@ export function normalizeBullionPayload(raw) {
       tag: '22K • HUID',
       metal: 'gold',
       unit: '10g',
-      bid: pickNum(mr.gold_22k_10g_bid),
-      ask: pickNum(mr.gold_22k_10g_ask, mr.gold_22k_10g, mr.gold_22k),
-      high: null,
-      low: null,
+      bid: pickNum(mr.gold_22k_10g_bid, pGold22?.bid),
+      ask: pickNum(mr.gold_22k_10g_ask, mr.gold_22k_10g, mr.gold_22k, pGold22?.ask),
+      high: pickNum(pGold22?.high),
+      low: pickNum(pGold22?.low),
     },
     {
       key: 'gold20k',
@@ -641,10 +751,10 @@ export function normalizeBullionPayload(raw) {
       tag: '20K • HUID',
       metal: 'gold',
       unit: '10g',
-      bid: pickNum(mr.gold_20k_10g_bid),
-      ask: pickNum(mr.gold_20k_10g_ask, mr.gold_20k_10g),
-      high: null,
-      low: null,
+      bid: pickNum(mr.gold_20k_10g_bid, pGold20?.bid),
+      ask: pickNum(mr.gold_20k_10g_ask, mr.gold_20k_10g, pGold20?.ask),
+      high: pickNum(pGold20?.high),
+      low: pickNum(pGold20?.low),
     },
     {
       key: 'gold18k',
@@ -652,10 +762,10 @@ export function normalizeBullionPayload(raw) {
       tag: '18K • HUID',
       metal: 'gold',
       unit: '10g',
-      bid: pickNum(mr.gold_18k_10g_bid),
-      ask: pickNum(mr.gold_18k_10g_ask, mr.gold_18k_10g, mr.gold_18k),
-      high: null,
-      low: null,
+      bid: pickNum(mr.gold_18k_10g_bid, pGold18?.bid),
+      ask: pickNum(mr.gold_18k_10g_ask, mr.gold_18k_10g, mr.gold_18k, pGold18?.ask),
+      high: pickNum(pGold18?.high),
+      low: pickNum(pGold18?.low),
     },
     {
       key: 'gold14k',
@@ -669,37 +779,20 @@ export function normalizeBullionPayload(raw) {
       low: null,
     },
     {
-      key: 'silverPeti',
-      name: 'Silver Bank 999 Cash',
-      tag: 'LOCAL CASH • 1KG',
-      metal: 'silver',
-      unit: '1KG',
-      bid: pickNum(mr.silver_bank_cash_bid, mr.silver_999_1kg_bid),
-      ask: pickNum(mr.silver_bank_cash_ask, mr.silver_bank_cash, mr.silver_peti),
-      high: null,
-      low: null,
-    },
-    {
       key: 'silverPeti_rtgs',
       name: 'Silver Bank 999 RTGS',
       tag: 'RTGS • 1KG',
       metal: 'silver',
       unit: '1KG',
-      bid: pickNum(mr.silver_bank_rtgs_bid),
-      ask: pickNum(mr.silver_bank_rtgs_ask, mr.silver_bank_rtgs),
-      high: null,
-      low: null,
+      ...sjSilverBankRtgs,
     },
     {
-      key: 'silverChorsa',
-      name: 'Silver Chorsa (98.00) Cash',
+      key: 'silverPeti',
+      name: 'Silver Bank 999 Cash',
       tag: 'LOCAL CASH • 1KG',
       metal: 'silver',
       unit: '1KG',
-      bid: pickNum(mr.silver_chorsa_bid),
-      ask: pickNum(mr.silver_chorsa_ask, mr.silver_chorsa),
-      high: null,
-      low: null,
+      ...sjSilverBankCash,
     },
     {
       key: 'silverChorsa_rtgs',
@@ -707,10 +800,15 @@ export function normalizeBullionPayload(raw) {
       tag: 'RTGS • 1KG',
       metal: 'silver',
       unit: '1KG',
-      bid: pickNum(mr.silver_chorsa_rtgs_bid),
-      ask: pickNum(mr.silver_chorsa_rtgs_ask, mr.silver_chorsa_rtgs),
-      high: null,
-      low: null,
+      ...sjSilverChorsaRtgs,
+    },
+    {
+      key: 'silverChorsa',
+      name: 'Silver Chorsa (98.00) Cash',
+      tag: 'LOCAL CASH • 1KG',
+      metal: 'silver',
+      unit: '1KG',
+      ...sjSilverChorsaCash,
     },
     {
       key: 'silverAuction',
@@ -718,10 +816,7 @@ export function normalizeBullionPayload(raw) {
       tag: 'AUCTION • 1KG',
       metal: 'silver',
       unit: '1KG',
-      bid: pickNum(mr.silver_auction_bank_bid),
-      ask: pickNum(mr.silver_auction_bank_ask, mr.silver_auction_bank),
-      high: null,
-      low: null,
+      ...sjSilverAuction,
     },
     {
       key: 'silverJewellery',
@@ -729,10 +824,10 @@ export function normalizeBullionPayload(raw) {
       tag: 'JEWELLERY • 1KG',
       metal: 'silver',
       unit: '1KG',
-      bid: pickNum(mr.silver_jewellery_bid),
-      ask: pickNum(mr.silver_jewellery_ask, mr.silver_jewellery),
-      high: null,
-      low: null,
+      bid: pickNum(mr.silver_jewellery_bid, pSilverJewel?.bid),
+      ask: pickNum(mr.silver_jewellery_ask, mr.silver_jewellery, pSilverJewel?.ask),
+      high: pickNum(pSilverJewel?.high),
+      low: pickNum(pSilverJewel?.low),
     },
   ].filter((x) => x.ask || x.bid);
 

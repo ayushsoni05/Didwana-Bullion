@@ -233,7 +233,7 @@ export function FloatingDock({
               <GitCompareArrows className="h-5 w-5 text-[#E5C158]" />
               <div>
                 <div className="text-xs font-bold text-white">Compare Mandi</div>
-                <div className="text-[10px] text-zinc-400">HB vs Mosun vs IBJA</div>
+                <div className="text-[10px] text-zinc-400">Jodhpur vs Sujangarh vs IBJA</div>
               </div>
             </button>
 

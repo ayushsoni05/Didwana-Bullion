@@ -797,10 +797,10 @@ export default function AdminPanel({ siteConfig, onSiteConfigSaved, onNewsChange
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
               {[
-                { key: 'hbGoldOffset', label: 'HB Gold (±₹)' },
-                { key: 'hbSilverOffset', label: 'HB Silver (±₹)' },
-                { key: 'mosunGoldOffset', label: 'Mosun Gold (±₹)' },
-                { key: 'mosunSilverOffset', label: 'Mosun Silver (±₹)' },
+                { key: 'hbGoldOffset', label: 'Jodhpur Gold (±₹)' },
+                { key: 'hbSilverOffset', label: 'Jodhpur Silver (±₹)' },
+                { key: 'mosunGoldOffset', label: 'Sujangarh Gold (±₹)' },
+                { key: 'mosunSilverOffset', label: 'Sujangarh Silver (±₹)' },
                 { key: 'ibjaGoldOffset', label: 'IBJA Gold (±₹)' },
               ].map((f) => (
                 <div key={f.key}>

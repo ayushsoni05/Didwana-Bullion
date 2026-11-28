@@ -131,7 +131,7 @@ export default function NewsTab({
         )}
       </div>
 
-      {/* Crisp White Date & Search Filter Bar (Exact Mosun News Design) */}
+      {/* Crisp White Date & Search Filter Bar */}
       <div className="rounded-2xl bg-white p-3 text-[#15100B] shadow-md space-y-2">
         <div className="grid grid-cols-12 gap-2 items-center">
           <div className="col-span-5">
@@ -201,7 +201,7 @@ export default function NewsTab({
         })}
       </div>
 
-      {/* Mosun-Inspired White News Cards with Bronze Date Badges */}
+      {/* Editorial White News Cards with Bronze Date Badges */}
       {loading && articles.length === 0 ? (
         <div className="space-y-3">
           {[1, 2].map((i) => (
@@ -308,7 +308,7 @@ export default function NewsTab({
         </div>
       )}
 
-      {/* Floating WhatsApp & Call Circular FABs (Exact Mosun News Touch) */}
+      {/* Floating WhatsApp & Call Circular FABs */}
       <div className="fixed bottom-24 right-4 z-20 flex flex-col gap-2">
         <a
           href={`https://wa.me/${whatsappNumber}`}
